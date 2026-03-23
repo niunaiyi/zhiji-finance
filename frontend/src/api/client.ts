@@ -1,4 +1,8 @@
 import axios from 'axios';
+import type { AuthState } from '../types/auth';
+
+const AUTH_STORAGE_KEY = 'auth';
+const LOGIN_PATH = '/login';
 
 const apiClient = axios.create({
     baseURL: '/api',
@@ -10,14 +14,19 @@ const apiClient = axios.create({
 
 // Request interceptor - add token and company ID
 apiClient.interceptors.request.use((config) => {
-    const authData = localStorage.getItem('auth');
+    const authData = localStorage.getItem(AUTH_STORAGE_KEY);
     if (authData) {
-        const { token, company } = JSON.parse(authData);
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-        if (company) {
-            config.headers['X-Company-Id'] = company.id.toString();
+        try {
+            const { token, company }: AuthState = JSON.parse(authData);
+            if (token) {
+                config.headers.Authorization = `Bearer ${token}`;
+            }
+            if (company?.id) {
+                config.headers['X-Company-Id'] = company.id.toString();
+            }
+        } catch (error) {
+            console.error('Failed to parse auth data:', error);
+            localStorage.removeItem(AUTH_STORAGE_KEY);
         }
     }
     return config;
@@ -31,8 +40,8 @@ apiClient.interceptors.response.use((response) => {
 }, (error) => {
     if (error.response && error.response.status === 401) {
         // Clear auth and redirect to login
-        localStorage.removeItem('auth');
-        window.location.href = '/login';
+        localStorage.removeItem(AUTH_STORAGE_KEY);
+        window.location.href = LOGIN_PATH;
     }
     return Promise.reject(error);
 });
