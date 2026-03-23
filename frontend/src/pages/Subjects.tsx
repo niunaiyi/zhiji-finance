@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Table, Tag, Button, Card, Tooltip, Space, Modal, Form, Input, Select, Radio, message, Popconfirm } from 'antd';
 import type { TableProps } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, VerticalAlignBottomOutlined, VerticalAlignTopOutlined } from '@ant-design/icons';
@@ -26,6 +26,15 @@ const BALANCE_DIRECTION_LABELS: Record<string, string> = {
     credit: '贷'
 };
 
+// Simple debounce utility
+function debounce<T extends (...args: any[]) => void>(func: T, wait: number): (...args: Parameters<T>) => void {
+    let timeout: NodeJS.Timeout | null = null;
+    return (...args: Parameters<T>) => {
+        if (timeout) clearTimeout(timeout);
+        timeout = setTimeout(() => func(...args), wait);
+    };
+}
+
 const Subjects: React.FC = () => {
     const [data, setData] = useState<AccountTreeNode[]>([]);
     const [loading, setLoading] = useState(false);
@@ -36,7 +45,7 @@ const Subjects: React.FC = () => {
     const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
     const { currentBook } = useBook();
 
-    const fetchSubjects = async () => {
+    const fetchSubjects = useCallback(async () => {
         if (!currentBook) return;
         setLoading(true);
         try {
@@ -68,11 +77,19 @@ const Subjects: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [currentBook]);
 
     useEffect(() => {
         fetchSubjects();
-    }, [currentBook]);
+    }, [fetchSubjects]);
+
+    // Debounced search handler
+    const debouncedSearch = useCallback(
+        debounce((value: string) => {
+            setSearchText(value);
+        }, 300),
+        []
+    );
 
     const handleAdd = () => {
         if (!currentBook) {
@@ -133,11 +150,11 @@ const Subjects: React.FC = () => {
             setIsModalOpen(false);
             fetchSubjects();
         } catch (error: unknown) {
-            if (error && typeof error === 'object' && 'isAxiosError' in error) {
-                console.error('Failed to save account:', error);
+            console.error('Failed to save account:', error);
+            // Only show error message for non-validation errors
+            if (error && typeof error === 'object' && 'response' in error) {
                 message.error(editingSubject ? '更新失败' : '创建失败');
             }
-            // Validation errors are handled by Ant Design Form
         }
     };
 
@@ -275,7 +292,7 @@ const Subjects: React.FC = () => {
                     prefix={<SearchOutlined className="text-slate-400" />}
                     allowClear
                     className="w-80 glass-panel border-slate-700 bg-slate-800/30 text-slate-200"
-                    onChange={e => setSearchText(e.target.value)}
+                    onChange={e => debouncedSearch(e.target.value)}
                 />
                 <Space>
                     <Button icon={<VerticalAlignBottomOutlined />} onClick={handleExpandAll}>展开全部</Button>
