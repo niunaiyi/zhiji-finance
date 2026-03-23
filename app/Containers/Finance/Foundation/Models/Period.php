@@ -41,7 +41,13 @@ class Period extends Model
 
     protected static function booted(): void
     {
-        static::updating(function (Period $period) {
+        // Use 'saving' event to catch all save attempts, including when status isn't dirty
+        static::saving(function (Period $period) {
+            // Skip validation for new records
+            if (!$period->exists) {
+                return;
+            }
+
             // Locked periods are completely immutable
             if ($period->getOriginal('status') === 'locked' && $period->isDirty()) {
                 throw ValidationException::withMessages([
@@ -49,18 +55,27 @@ class Period extends Model
                 ]);
             }
 
-            if ($period->isDirty('status')) {
-                $oldStatus = $period->getOriginal('status');
-                $newStatus = $period->status;
+            // Validate status transitions (including same-status attempts)
+            $currentStatus = $period->status;
+            $originalStatus = $period->getOriginal('status');
+
+            if ($currentStatus !== $originalStatus || !$period->isDirty('status')) {
+                // Status has changed OR status is set but not dirty (same value)
+                if ($currentStatus === $originalStatus) {
+                    // Attempting to transition to the same status (e.g., closed→closed)
+                    throw ValidationException::withMessages([
+                        'status' => "Invalid status transition from {$originalStatus} to {$currentStatus}",
+                    ]);
+                }
 
                 // Auto-set closed_at and closed_by when closing
-                if ($newStatus === 'closed' && $oldStatus !== 'closed') {
+                if ($currentStatus === 'closed' && $originalStatus !== 'closed') {
                     $period->closed_at = now();
                     $period->closed_by = auth()->id();
                 }
 
                 // Clear closed_at and closed_by when reopening
-                if ($newStatus === 'open' && $oldStatus === 'closed') {
+                if ($currentStatus === 'open' && $originalStatus === 'closed') {
                     $period->closed_at = null;
                     $period->closed_by = null;
                 }
@@ -71,10 +86,10 @@ class Period extends Model
                     'closed' => ['open', 'locked'],
                 ];
 
-                if (!isset($allowedTransitions[$oldStatus]) ||
-                    !in_array($newStatus, $allowedTransitions[$oldStatus])) {
+                if (!isset($allowedTransitions[$originalStatus]) ||
+                    !in_array($currentStatus, $allowedTransitions[$originalStatus])) {
                     throw ValidationException::withMessages([
-                        'status' => "Invalid status transition from {$oldStatus} to {$newStatus}",
+                        'status' => "Invalid status transition from {$originalStatus} to {$currentStatus}",
                     ]);
                 }
             }
