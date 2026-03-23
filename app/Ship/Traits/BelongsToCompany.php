@@ -13,7 +13,7 @@ trait BelongsToCompany
 
         // Auto-fill company_id on model creation
         static::creating(function ($model) {
-            if (!$model->company_id) {
+            if ($model->company_id === null) {
                 // Check if binding exists before resolving
                 if (app()->bound('current.company_id')) {
                     $companyId = app('current.company_id');
