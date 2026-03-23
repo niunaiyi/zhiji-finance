@@ -17,7 +17,7 @@ trait BelongsToCompany
                 // Check if binding exists before resolving
                 if (app()->bound('current.company_id')) {
                     $companyId = app('current.company_id');
-                    if ($companyId) {
+                    if ($companyId !== null) {
                         $model->company_id = $companyId;
                     }
                 }
