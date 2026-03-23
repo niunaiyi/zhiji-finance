@@ -55,14 +55,19 @@ class Period extends Model
                 ]);
             }
 
-            // Validate status transitions (including same-status attempts)
-            $currentStatus = $period->status;
-            $originalStatus = $period->getOriginal('status');
+            // Validate status transitions only when status is actually changing
+            if ($period->isDirty('status')) {
+                $currentStatus = $period->status;
+                $originalStatus = $period->getOriginal('status');
 
-            if ($currentStatus !== $originalStatus || !$period->isDirty('status')) {
-                // Status has changed OR status is set but not dirty (same value)
-                if ($currentStatus === $originalStatus) {
-                    // Attempting to transition to the same status (e.g., closed→closed)
+                // Validate allowed transitions
+                $allowedTransitions = [
+                    'open' => ['closed'],
+                    'closed' => ['open', 'locked'],
+                ];
+
+                if (!isset($allowedTransitions[$originalStatus]) ||
+                    !in_array($currentStatus, $allowedTransitions[$originalStatus])) {
                     throw ValidationException::withMessages([
                         'status' => "Invalid status transition from {$originalStatus} to {$currentStatus}",
                     ]);
@@ -78,19 +83,6 @@ class Period extends Model
                 if ($currentStatus === 'open' && $originalStatus === 'closed') {
                     $period->closed_at = null;
                     $period->closed_by = null;
-                }
-
-                // Validate allowed transitions
-                $allowedTransitions = [
-                    'open' => ['closed'],
-                    'closed' => ['open', 'locked'],
-                ];
-
-                if (!isset($allowedTransitions[$originalStatus]) ||
-                    !in_array($currentStatus, $allowedTransitions[$originalStatus])) {
-                    throw ValidationException::withMessages([
-                        'status' => "Invalid status transition from {$originalStatus} to {$currentStatus}",
-                    ]);
                 }
             }
         });
