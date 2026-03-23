@@ -1,0 +1,6 @@
+{
+    "name": "finance/auth",
+    "description": "Finance Auth Container",
+    "type": "container",
+    "require": {}
+}
