@@ -3,6 +3,7 @@
 namespace App\Containers\Finance\Foundation\Models;
 
 use App\Containers\AppSection\User\Models\User;
+use App\Containers\Finance\Auth\Models\Company;
 use App\Ship\Parents\Models\Model;
 use App\Ship\Traits\BelongsToCompany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -18,8 +19,6 @@ class Period extends Model
         'start_date',
         'end_date',
         'status',
-        'closed_at',
-        'closed_by',
     ];
 
     protected $casts = [
@@ -30,6 +29,11 @@ class Period extends Model
         'closed_at' => 'datetime',
     ];
 
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
+    }
+
     public function closedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'closed_by');
@@ -38,18 +42,30 @@ class Period extends Model
     protected static function booted(): void
     {
         static::updating(function (Period $period) {
+            // Locked periods are completely immutable
+            if ($period->getOriginal('status') === 'locked' && $period->isDirty()) {
+                throw ValidationException::withMessages([
+                    'period' => 'Locked periods cannot be modified',
+                ]);
+            }
+
             if ($period->isDirty('status')) {
                 $oldStatus = $period->getOriginal('status');
                 $newStatus = $period->status;
 
-                // locked periods cannot change status
-                if ($oldStatus === 'locked') {
-                    throw ValidationException::withMessages([
-                        'status' => 'Locked periods cannot be modified',
-                    ]);
+                // Auto-set closed_at and closed_by when closing
+                if ($newStatus === 'closed' && $oldStatus !== 'closed') {
+                    $period->closed_at = now();
+                    $period->closed_by = auth()->id();
                 }
 
-                // validate allowed transitions
+                // Clear closed_at and closed_by when reopening
+                if ($newStatus === 'open' && $oldStatus === 'closed') {
+                    $period->closed_at = null;
+                    $period->closed_by = null;
+                }
+
+                // Validate allowed transitions
                 $allowedTransitions = [
                     'open' => ['closed'],
                     'closed' => ['open', 'locked'],
