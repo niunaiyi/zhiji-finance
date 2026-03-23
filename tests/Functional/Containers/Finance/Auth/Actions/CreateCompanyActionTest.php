@@ -38,4 +38,87 @@ class CreateCompanyActionTest extends TestCase
             'is_active' => true,
         ]);
     }
+
+    public function testTransactionRollbackOnFailure(): void
+    {
+        // Arrange
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $data = [
+            'code' => 'TEST02',
+            'name' => 'Test Company 2',
+            'fiscal_year_start' => 1,
+        ];
+
+        // Mock AssignUserRoleTask to throw exception
+        $mockTask = $this->mock(\App\Containers\Finance\Auth\Tasks\AssignUserRoleTask::class);
+        $mockTask->shouldReceive('run')
+            ->once()
+            ->andThrow(new \RuntimeException('Simulated failure'));
+
+        // Act & Assert
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Simulated failure');
+
+        $action = app(CreateCompanyAction::class);
+        $action->run($data);
+
+        // Verify company was NOT created due to rollback
+        $this->assertDatabaseMissing('companies', [
+            'code' => 'TEST02',
+        ]);
+    }
+
+    public function testDuplicateCompanyCodeFails(): void
+    {
+        // Arrange
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $data = [
+            'code' => 'DUPLICATE',
+            'name' => 'First Company',
+            'fiscal_year_start' => 1,
+        ];
+
+        // Create first company
+        $action = app(CreateCompanyAction::class);
+        $action->run($data);
+
+        // Act & Assert - Try to create duplicate
+        // Repository wraps database constraint violations in ResourceCreationFailed
+        $this->expectException(\Apiato\Core\Repositories\Exceptions\ResourceCreationFailed::class);
+        $this->expectExceptionMessage('Company creation failed');
+
+        $duplicateData = [
+            'code' => 'DUPLICATE',
+            'name' => 'Second Company',
+            'fiscal_year_start' => 1,
+        ];
+
+        $action->run($duplicateData);
+    }
+
+    public function testUnauthenticatedUserFails(): void
+    {
+        // Arrange - No user authenticated
+        $data = [
+            'code' => 'TEST03',
+            'name' => 'Test Company 3',
+            'fiscal_year_start' => 1,
+        ];
+
+        // Act & Assert
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('User must be authenticated');
+
+        $action = app(CreateCompanyAction::class);
+        $action->run($data);
+
+        // Verify company was NOT created
+        $this->assertDatabaseMissing('companies', [
+            'code' => 'TEST03',
+        ]);
+    }
 }

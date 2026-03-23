@@ -18,10 +18,13 @@ class CreateCompanyAction extends Action
     public function run(array $data): Company
     {
         return DB::transaction(function () use ($data) {
+            $userId = auth()->id();
+            throw_if(!$userId, new \RuntimeException('User must be authenticated'));
+
             $company = $this->createCompanyTask->run($data);
 
             $this->assignUserRoleTask->run(
-                auth()->id(),
+                $userId,
                 $company->id,
                 'admin'
             );
