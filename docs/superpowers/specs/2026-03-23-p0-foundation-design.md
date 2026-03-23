@@ -92,9 +92,11 @@ class Account extends Model
    - `app()->instance('current.role', $role)`
 5. Return 403 if validation fails
 
-**Applied to:** All `/api/v1/*` routes (Finance section routes)
+**Applied to:** All `/api/v1/*` routes EXCEPT `/api/v1/auth/*`
 
-**Not applied to:** `/api/auth/*` routes (login, register, list companies)
+**Not applied to:**
+- `/api/v1/auth/*` routes (company management - no company context needed yet)
+- Apiato's built-in auth routes at `/api/clients/web/login` etc.
 
 ---
 
@@ -233,7 +235,7 @@ class Account extends Model
 - `level`: auto-calculated from parent (root = 1, child = parent.level + 1)
 - `element_type`: required for level 1, inherited from parent for children
 - `balance_direction`: required for level 1, inherited from parent for children
-- `is_detail`: auto-set to true if no children, false if has children
+- `is_detail`: system-managed field, automatically set to true when account has no children, false when children exist. Cannot be manually changed - derived from account hierarchy. When creating a child account, parent's is_detail is automatically set to false.
 - Cannot delete account if it has children or has been used in vouchers (soft delete via `is_active`)
 
 **Business Rules:**
@@ -350,7 +352,7 @@ class Account extends Model
 - Only one period can be 'open' at a time per company
 - Cannot create vouchers in 'closed' or 'locked' periods
 - Cannot reopen a 'locked' period
-- Period closing requires all vouchers in that period to be posted
+- Period closing requires all vouchers in that period to be posted (P1+ - in P0, closing just transitions status)
 
 ### Actions
 
@@ -358,7 +360,7 @@ Each model has standard CRUD actions following Porto patterns:
 
 **Account Actions:**
 - `CreateAccountAction` - create account with auto-calculated level
-- `UpdateAccountAction` - update account (validates no children if changing is_detail)
+- `UpdateAccountAction` - update account (name, is_active only - code/parent/is_detail are immutable after creation)
 - `ListAccountsAction` - list accounts with optional filters (parent_id, is_active, is_detail)
 - `FindAccountByIdAction` - find single account
 - `DeactivateAccountAction` - soft delete (set is_active = false)
@@ -384,7 +386,7 @@ Each model has standard CRUD actions following Porto patterns:
 **Period Actions:**
 - `CreatePeriodAction` - create single period
 - `InitializeFiscalYearAction` - create 12 periods for a fiscal year
-- `ClosePeriodAction` - close current open period (validates all vouchers posted)
+- `ClosePeriodAction` - close current open period (P0: just transitions status; P1+: validates all vouchers posted)
 - `ListPeriodsAction` - list periods with filters (fiscal_year, status)
 - `FindPeriodByIdAction`
 
