@@ -553,10 +553,18 @@ Each model has standard CRUD actions following Porto patterns:
   - 6901 以前年度损益调整
 
 ### PeriodSeeder
-- Create 12 periods for default company for fiscal year 2026:
+- Create 12 periods for default company for fiscal year 2026
+- Respect the company's `fiscal_year_start` setting (default is 1 = January)
+- If fiscal_year_start = 1 (January):
   - Period 1: 2026-01-01 to 2026-01-31, status='open'
-  - Period 2-12: subsequent months, status='open'
-- Only period 1 should be 'open', others should be 'open' but not current
+  - Period 2: 2026-02-01 to 2026-02-28, status='closed'
+  - Period 3-12: subsequent months, status='closed'
+- If fiscal_year_start = 4 (April):
+  - Period 1: 2026-04-01 to 2026-04-30, status='open'
+  - Period 2: 2026-05-01 to 2026-05-31, status='closed'
+  - Period 3-12: subsequent months through 2027-03-31, status='closed'
+- Only the first period (period_number=1) should have status='open', all others 'closed'
+- Periods are opened sequentially as the company progresses through the fiscal year
 
 ---
 
