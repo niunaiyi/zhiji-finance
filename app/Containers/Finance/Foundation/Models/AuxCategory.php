@@ -12,7 +12,6 @@ class AuxCategory extends Model
     protected $fillable = [
         'code',
         'name',
-        'is_system',
     ];
 
     protected $casts = [

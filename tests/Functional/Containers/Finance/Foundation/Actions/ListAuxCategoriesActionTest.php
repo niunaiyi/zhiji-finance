@@ -2,23 +2,40 @@
 
 namespace Tests\Functional\Containers\Finance\Foundation\Actions;
 
+use App\Containers\AppSection\User\Models\User;
 use App\Containers\Finance\Auth\Models\Company;
+use App\Containers\Finance\Auth\Models\UserCompanyRole;
 use App\Containers\Finance\Foundation\Actions\ListAuxCategoriesAction;
 use App\Containers\Finance\Foundation\Models\AuxCategory;
-use App\Ship\Tests\ShipTestCase;
-use Illuminate\Support\Facades\Auth;
+use App\Ship\Parents\Tests\TestCase;
 
-class ListAuxCategoriesActionTest extends ShipTestCase
+class ListAuxCategoriesActionTest extends TestCase
 {
     private ListAuxCategoriesAction $action;
+    private User $user;
     private Company $company;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->action = app(ListAuxCategoriesAction::class);
+
+        $this->user = User::factory()->create();
         $this->company = Company::factory()->create();
-        Auth::shouldReceive('user->company_id')->andReturn($this->company->id);
+
+        // Assign user to company
+        UserCompanyRole::create([
+            'user_id' => $this->user->id,
+            'company_id' => $this->company->id,
+            'role' => 'admin',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($this->user);
+
+        // Bind company_id to service container for CompanyScope
+        app()->instance('current.company_id', $this->company->id);
+
+        $this->action = app(ListAuxCategoriesAction::class);
     }
 
     public function testListAuxCategoriesWithPagination(): void

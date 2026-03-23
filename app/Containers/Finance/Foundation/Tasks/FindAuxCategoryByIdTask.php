@@ -14,6 +14,6 @@ class FindAuxCategoryByIdTask extends Task
 
     public function run(int $id): AuxCategory
     {
-        return $this->repository->find($id);
+        return $this->repository->findOrFail($id);
     }
 }
