@@ -237,6 +237,7 @@ class Account extends Model
 - `balance_direction`: required for level 1, inherited from parent for children
 - `is_detail`: system-managed field, automatically set to true when account has no children, false when children exist. Cannot be manually changed - derived from account hierarchy. When creating a child account, parent's is_detail is automatically set to false.
 - Cannot delete account if it has children or has been used in vouchers (soft delete via `is_active`)
+  - P0: Only validate "has children" - voucher validation deferred to P1
 
 **Business Rules:**
 - Code format: 4 digits per level, no separators (1001, 100101, 10010101, 1001010101)
@@ -298,6 +299,7 @@ class Account extends Model
 - `aux_category_id`: required, must exist in same company
 - `parent_id`: must exist in same category if provided
 - Cannot delete if used in voucher lines (soft delete via `is_active`)
+  - P0: Deletion allowed - voucher validation deferred to P1
 
 **Extra field examples:**
 - Customer: `{"contact": "张三", "phone": "13800138000"}`
@@ -320,6 +322,7 @@ class Account extends Model
 - `account_id`: required, must have `has_aux = true`
 - `aux_category_id`: required, must exist in same company
 - Cannot delete if account has been used in vouchers with this aux category
+  - P0: Deletion allowed - voucher validation deferred to P1
 
 #### Period (会计期间)
 **Table:** `periods`
