@@ -29,6 +29,24 @@ class SwitchTenantMiddlewareTest extends ShipTestCase
         });
     }
 
+    public function testMiddlewareRejectsUnauthenticatedUser(): void
+    {
+        // Arrange
+        $middleware = new SwitchTenantMiddleware();
+        $request = Request::create('/api/v1/accounts', 'GET');
+        $request->headers->set('X-Company-Id', '1');
+        $request->setUserResolver(fn() => null); // No authenticated user
+
+        // Expect exception
+        $this->expectException(HttpException::class);
+        $this->expectExceptionMessage('Unauthenticated');
+
+        // Act
+        $middleware->handle($request, function () {
+            return new Response();
+        });
+    }
+
     public function testMiddlewareRejectsUnauthorizedCompanyAccess(): void
     {
         // Arrange
