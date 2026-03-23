@@ -111,14 +111,27 @@ class AttachAuxCategoryToAccountActionTest extends TestCase
         $this->action->run([
             'account_id' => $this->account->id,
             'aux_category_id' => $this->auxCategory->id,
+            'is_required' => true,
+            'sort_order' => 1,
         ]);
 
-        // Attempt duplicate attachment
-        $this->expectException(\Exception::class);
+        // Verify first attachment exists
+        $this->assertEquals(1, $this->account->auxCategories()->count());
 
+        // Attempt duplicate attachment with different pivot data
         $this->action->run([
             'account_id' => $this->account->id,
             'aux_category_id' => $this->auxCategory->id,
+            'is_required' => false,
+            'sort_order' => 2,
         ]);
+
+        // Verify no duplicate record was created (count should still be 1)
+        $this->assertEquals(1, $this->account->auxCategories()->count());
+
+        // Verify pivot data was updated to the latest values
+        $pivot = $this->account->fresh()->auxCategories()->first()->pivot;
+        $this->assertFalse($pivot->is_required);
+        $this->assertEquals(2, $pivot->sort_order);
     }
 }

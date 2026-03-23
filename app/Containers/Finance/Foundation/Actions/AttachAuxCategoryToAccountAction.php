@@ -30,7 +30,7 @@ class AttachAuxCategoryToAccountAction extends Action
         ];
 
         return $this->attachAuxCategoryToAccountTask->run(
-            $data['account_id'],
+            $account,
             $data['aux_category_id'],
             $pivotData
         );

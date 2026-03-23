@@ -9,6 +9,7 @@ use App\Containers\Finance\Foundation\Actions\DetachAuxCategoryFromAccountAction
 use App\Containers\Finance\Foundation\Models\Account;
 use App\Containers\Finance\Foundation\Models\AuxCategory;
 use App\Ship\Parents\Tests\TestCase;
+use Illuminate\Validation\ValidationException;
 
 class DetachAuxCategoryFromAccountActionTest extends TestCase
 {
@@ -84,5 +85,23 @@ class DetachAuxCategoryFromAccountActionTest extends TestCase
 
         // Should return true (Laravel's detach returns the number of affected rows, 0 in this case)
         $this->assertTrue($result);
+    }
+
+    public function testThrowsValidationExceptionWhenAccountHasAuxIsFalse(): void
+    {
+        $accountWithoutAux = Account::factory()->create([
+            'company_id' => $this->company->id,
+            'code' => '1001',
+            'name' => 'Cash',
+            'has_aux' => false,
+        ]);
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('Account does not support auxiliary accounting');
+
+        $this->action->run([
+            'account_id' => $accountWithoutAux->id,
+            'aux_category_id' => $this->auxCategory->id,
+        ]);
     }
 }
