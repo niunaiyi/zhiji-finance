@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Card, Table, Button, Space, Typography, Modal, Form, Input, message, Tabs, Empty, Spin } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined } from '@ant-design/icons';
 import { auxCategoriesApi, auxItemsApi } from '../api/auxiliary';
 import { AuxCategory, AuxItem } from '../types/auxiliary';
 
@@ -13,8 +13,19 @@ const AuxiliaryManagement: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [categoriesLoading, setCategoriesLoading] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
     const [form] = Form.useForm();
     const [editingId, setEditingId] = useState<number | null>(null);
+
+    const currentCategory = useMemo(() =>
+        categories.find(c => c.id === activeCategory),
+        [categories, activeCategory]
+    );
+
+    const isSystemCategory = useMemo(() =>
+        currentCategory?.is_system ?? false,
+        [currentCategory]
+    );
 
     const fetchCategories = async () => {
         setCategoriesLoading(true);
@@ -59,9 +70,6 @@ const AuxiliaryManagement: React.FC = () => {
     const handleAdd = () => {
         setEditingId(null);
         form.resetFields();
-        if (activeCategory) {
-            form.setFieldsValue({ aux_category_id: activeCategory });
-        }
         setIsModalOpen(true);
     };
 
@@ -70,58 +78,36 @@ const AuxiliaryManagement: React.FC = () => {
         form.setFieldsValue({
             code: record.code,
             name: record.name,
-            aux_category_id: record.aux_category_id,
         });
         setIsModalOpen(true);
     };
 
     const handleOk = async () => {
+        setSubmitting(true);
         try {
             const values = await form.validateFields();
+            const payload = {
+                ...values,
+                aux_category_id: activeCategory!,
+            };
 
             if (editingId) {
-                await auxItemsApi.update(editingId, values);
+                await auxItemsApi.update(editingId, payload);
+                message.success('更新成功');
             } else {
-                await auxItemsApi.create(values);
+                await auxItemsApi.create(payload);
+                message.success('创建成功');
             }
 
-            message.success('保存成功');
             setIsModalOpen(false);
-            if (activeCategory) {
-                fetchItems(activeCategory);
-            }
+            form.resetFields();
+            fetchItems(activeCategory!);
         } catch (error: unknown) {
             console.error('Failed to save item:', error);
-            message.error('保存失败');
+            message.error(editingId ? '更新失败' : '创建失败');
+        } finally {
+            setSubmitting(false);
         }
-    };
-
-    const handleDelete = async (id: number) => {
-        Modal.confirm({
-            title: '确认删除',
-            content: '确定要删除这个辅助核算项目吗？',
-            okText: '确定',
-            cancelText: '取消',
-            onOk: async () => {
-                try {
-                    // Note: Delete API is not implemented in auxiliary.ts yet
-                    // This will need to be added to the API module
-                    message.warning('删除功能暂未实现');
-                } catch (error: unknown) {
-                    console.error('Failed to delete item:', error);
-                    message.error('删除失败');
-                }
-            },
-        });
-    };
-
-    const getCurrentCategory = () => {
-        return categories.find(cat => cat.id === activeCategory);
-    };
-
-    const isSystemCategory = () => {
-        const currentCategory = getCurrentCategory();
-        return currentCategory?.is_system || false;
     };
 
     const columns = [
@@ -130,29 +116,16 @@ const AuxiliaryManagement: React.FC = () => {
         {
             title: '操作',
             key: 'action',
-            width: 150,
-            render: (_: unknown, record: AuxItem) => {
-                const systemCategory = isSystemCategory();
-                return (
-                    <Space>
-                        <Button
-                            type="text"
-                            icon={<EditOutlined />}
-                            onClick={() => handleEdit(record)}
-                            disabled={systemCategory}
-                            title={systemCategory ? '系统类别不可编辑' : ''}
-                        />
-                        <Button
-                            type="text"
-                            danger
-                            icon={<DeleteOutlined />}
-                            onClick={() => handleDelete(record.id)}
-                            disabled={systemCategory}
-                            title={systemCategory ? '系统类别不可删除' : ''}
-                        />
-                    </Space>
-                );
-            }
+            width: 100,
+            render: (_: unknown, record: AuxItem) => (
+                <Button
+                    type="text"
+                    icon={<EditOutlined />}
+                    onClick={() => handleEdit(record)}
+                    disabled={isSystemCategory}
+                    title={isSystemCategory ? '系统类别不可编辑' : ''}
+                />
+            )
         },
     ];
 
@@ -168,8 +141,8 @@ const AuxiliaryManagement: React.FC = () => {
                     icon={<PlusOutlined />}
                     size="large"
                     onClick={handleAdd}
-                    disabled={!activeCategory || isSystemCategory()}
-                    title={isSystemCategory() ? '系统类别不可新增项目' : ''}
+                    disabled={!activeCategory || isSystemCategory}
+                    title={isSystemCategory ? '系统类别不可新增项目' : ''}
                 >
                     新增项目
                 </Button>
@@ -209,16 +182,14 @@ const AuxiliaryManagement: React.FC = () => {
             </Card>
 
             <Modal
-                title={editingId ? `编辑${getCurrentCategory()?.name || ''}` : `新增${getCurrentCategory()?.name || ''}`}
+                title={editingId ? `编辑${currentCategory?.name || ''}` : `新增${currentCategory?.name || ''}`}
                 open={isModalOpen}
                 onOk={handleOk}
                 onCancel={() => setIsModalOpen(false)}
+                confirmLoading={submitting}
                 destroyOnClose
             >
                 <Form form={form} layout="vertical">
-                    <Form.Item name="aux_category_id" label="类别" hidden>
-                        <Input type="number" />
-                    </Form.Item>
                     <Form.Item name="code" label="编码" rules={[{ required: true, message: '请输入编码' }]}>
                         <Input placeholder="建议使用字母或数字组合" />
                     </Form.Item>
