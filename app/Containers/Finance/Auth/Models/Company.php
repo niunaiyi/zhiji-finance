@@ -15,5 +15,6 @@ class Company extends Model
 
     protected $casts = [
         'fiscal_year_start' => 'integer',
+        'status' => 'string',
     ];
 }

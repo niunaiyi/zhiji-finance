@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -19,6 +20,8 @@ return new class extends Migration
             $table->enum('status', ['active', 'suspended'])->default('active');
             $table->timestamps();
         });
+
+        DB::statement('ALTER TABLE companies ADD CONSTRAINT companies_fiscal_year_start_check CHECK (fiscal_year_start >= 1 AND fiscal_year_start <= 12)');
     }
 
     /**
