@@ -8,9 +8,12 @@ use App\Containers\Finance\Auth\Models\UserCompanyRole;
 use App\Containers\Finance\Foundation\Models\Account;
 use App\Containers\Finance\Foundation\Models\Period;
 use App\Ship\Parents\Tests\TestCase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 
 class MultiTenantIsolationTest extends TestCase
 {
+    use RefreshDatabase;
     public function testUserCannotSeeOtherCompanyData(): void
     {
         // Arrange
@@ -67,7 +70,7 @@ class MultiTenantIsolationTest extends TestCase
         $this->assertEquals('locked', $period->status);
 
         // Cannot reopen locked period
-        $this->expectException(\Exception::class);
+        $this->expectException(ValidationException::class);
         $period->update(['status' => 'open']);
     }
 }
