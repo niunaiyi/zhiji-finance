@@ -20,6 +20,7 @@ import Login from './pages/Login';
 import CompanySelection from './pages/CompanySelection';
 import { SettingsProvider, useSettings } from './context/SettingsContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import './index.css';
 
 // Protected route wrapper
@@ -92,11 +93,13 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <SettingsProvider>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
-    </SettingsProvider>
+    <ErrorBoundary>
+      <SettingsProvider>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </SettingsProvider>
+    </ErrorBoundary>
   );
 };
 
