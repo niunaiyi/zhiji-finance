@@ -8,6 +8,7 @@ interface AuthContextType extends AuthState {
   selectCompany: (token: string, company: Company, role: string) => void;
   logout: () => void;
   isAuthenticated: boolean;
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,6 +21,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     role: null,
     companies: [],
   });
+  const [isLoading, setIsLoading] = useState(true);
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -35,6 +37,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } catch (error) {
       console.error('Failed to load auth state:', error);
       localStorage.removeItem('auth');
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
@@ -66,7 +70,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const isAuthenticated = !!authState.token && !!authState.company;
 
   return (
-    <AuthContext.Provider value={{ ...authState, login, selectCompany, logout, isAuthenticated }}>
+    <AuthContext.Provider value={{ ...authState, login, selectCompany, logout, isAuthenticated, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

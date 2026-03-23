@@ -16,8 +16,12 @@ export const Login: React.FC = () => {
       const response = await authApi.login(values.email, values.password);
       login(response.user, response.companies);
       navigate('/select-company');
-    } catch (error) {
-      message.error('Login failed. Please check your credentials.');
+    } catch (error: unknown) {
+      console.error('Login failed:', error);
+      const errorMessage = error instanceof Error
+        ? error.message
+        : 'Login failed. Please check your credentials.';
+      message.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -29,6 +33,7 @@ export const Login: React.FC = () => {
         <Form onFinish={onFinish} autoComplete="off">
           <Form.Item
             name="email"
+            label="Email"
             rules={[
               { required: true, message: 'Please input your email!' },
               { type: 'email', message: 'Please enter a valid email!' }
@@ -38,6 +43,7 @@ export const Login: React.FC = () => {
           </Form.Item>
           <Form.Item
             name="password"
+            label="Password"
             rules={[{ required: true, message: 'Please input your password!' }]}
           >
             <Input.Password prefix={<LockOutlined />} placeholder="Password" />

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, List, Button, message, Tag } from 'antd';
+import { Card, List, Button, message, Tag, Empty } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { authApi } from '../api/auth';
 import { useAuth } from '../context/AuthContext';
@@ -16,8 +16,12 @@ export const CompanySelection: React.FC = () => {
       const response = await authApi.selectCompany(companyId);
       selectCompany(response.token, response.company, response.role);
       navigate('/');
-    } catch (error) {
-      message.error('Failed to select company');
+    } catch (error: unknown) {
+      console.error('Company selection failed:', error);
+      const errorMessage = error instanceof Error
+        ? error.message
+        : 'Failed to select company';
+      message.error(errorMessage);
     } finally {
       setLoading(null);
     }
@@ -26,34 +30,38 @@ export const CompanySelection: React.FC = () => {
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#0F172A' }}>
       <Card title="Select Company" style={{ width: 600 }}>
-        <List
-          dataSource={companies}
-          renderItem={(company: Company) => (
-            <List.Item
-              actions={[
-                <Button
-                  type="primary"
-                  loading={loading === company.id}
-                  onClick={() => handleSelectCompany(company.id)}
-                >
-                  Select
-                </Button>
-              ]}
-            >
-              <List.Item.Meta
-                title={company.name}
-                description={
-                  <div>
-                    <span>Code: {company.code}</span>
-                    <span style={{ marginLeft: 16 }}>
-                      Status: <Tag color={company.status === 'active' ? 'green' : 'red'}>{company.status}</Tag>
-                    </span>
-                  </div>
-                }
-              />
-            </List.Item>
-          )}
-        />
+        {companies.length === 0 ? (
+          <Empty description="No companies available" />
+        ) : (
+          <List
+            dataSource={companies}
+            renderItem={(company: Company) => (
+              <List.Item
+                actions={[
+                  <Button
+                    type="primary"
+                    loading={loading === company.id}
+                    onClick={() => handleSelectCompany(company.id)}
+                  >
+                    Select
+                  </Button>
+                ]}
+              >
+                <List.Item.Meta
+                  title={company.name}
+                  description={
+                    <div>
+                      <span>Code: {company.code}</span>
+                      <span style={{ marginLeft: 16 }}>
+                        Status: <Tag color={company.status === 'active' ? 'green' : 'red'}>{company.status}</Tag>
+                      </span>
+                    </div>
+                  }
+                />
+              </List.Item>
+            )}
+          />
+        )}
       </Card>
     </div>
   );

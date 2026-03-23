@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { ConfigProvider, theme } from 'antd';
+import { ConfigProvider, theme, Spin } from 'antd';
 import { BookProvider } from './context/BookContext';
 import { TabProvider } from './context/TabContext';
 import MainLayout from './layouts/MainLayout';
@@ -24,7 +24,12 @@ import './index.css';
 
 // Protected route wrapper
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <Spin fullscreen />;
+  }
+
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
 };
 
