@@ -14,6 +14,7 @@ class ListAuxCategoriesRequest extends Request
     {
         return [
             'search' => 'nullable|string',
+            'is_system' => 'nullable|boolean',
             'page' => 'nullable|integer|min:1',
             'limit' => 'nullable|integer|min:1|max:100',
         ];
