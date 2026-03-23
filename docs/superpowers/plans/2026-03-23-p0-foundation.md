@@ -1032,17 +1032,97 @@ git commit -m "feat(auth): add CreateCompanyAction with user role assignment"
 
 ---
 
-### Task 2.6-2.10: Complete Finance/Auth API Layer
+### Task 2.6: Create ListUserCompaniesAction
 
-**Note:** Following the same TDD pattern as Task 2.5, implement:
+**Files:**
+- Create: `app/Containers/Finance/Auth/Actions/ListUserCompaniesAction.php`
+- Create: `app/Containers/Finance/Auth/Tasks/FindUserCompaniesTask.php`
 
-- **Task 2.6**: ListUserCompaniesAction + FindUserCompaniesTask
-- **Task 2.7**: AssignUserRoleAction + ValidateUserCompanyAccessTask
-- **Task 2.8**: Controllers (CreateCompanyController, ListCompaniesController, AssignRoleController)
-- **Task 2.9**: Requests (CreateCompanyRequest, ListCompaniesRequest, AssignRoleRequest) with validation rules
-- **Task 2.10**: Transformers (CompanyTransformer, UserCompanyRoleTransformer) + Routes
+Following TDD pattern from Task 2.5:
+- Write test expecting user's companies with eager-loaded relationships
+- Implement FindUserCompaniesTask querying user_company_roles with Company relationship
+- Implement ListUserCompaniesAction calling the task
+- Verify test passes, commit
 
-Each task follows 5-7 steps: Write test → Run (fail) → Implement → Run (pass) → Commit
+### Task 2.7: Create AssignUserRoleAction with Authorization
+
+**Files:**
+- Create: `app/Containers/Finance/Auth/Actions/AssignUserRoleAction.php`
+- Create: `app/Containers/Finance/Auth/Tasks/ValidateUserCompanyAccessTask.php`
+
+**Critical business rule:** Only company admins can assign roles (spec line 186)
+
+- Write test expecting 403 when non-admin tries to assign role
+- Write test expecting success when admin assigns role
+- Implement ValidateUserCompanyAccessTask checking if auth user has 'admin' role for target company
+- Implement AssignUserRoleAction with authorization check before calling AssignUserRoleTask
+- Verify tests pass, commit
+
+### Task 2.8: Create API Controllers
+
+**Files:**
+- Create: `app/Containers/Finance/Auth/UI/API/Controllers/CreateCompanyController.php`
+- Create: `app/Containers/Finance/Auth/UI/API/Controllers/ListCompaniesController.php`
+- Create: `app/Containers/Finance/Auth/UI/API/Controllers/AssignRoleController.php`
+
+Each controller follows Porto pattern: inject Action, call Action->run(), return Response with Transformer
+
+### Task 2.9: Create Request Validators
+
+**Files:**
+- Create: `app/Containers/Finance/Auth/UI/API/Requests/CreateCompanyRequest.php`
+- Create: `app/Containers/Finance/Auth/UI/API/Requests/ListCompaniesRequest.php`
+- Create: `app/Containers/Finance/Auth/UI/API/Requests/AssignRoleRequest.php`
+
+**CreateCompanyRequest validation rules:**
+```php
+public function rules(): array
+{
+    return [
+        'code' => 'required|string|max:20|unique:companies,code|alpha_num',
+        'name' => 'required|string|max:100',
+        'fiscal_year_start' => 'required|integer|min:1|max:12',
+    ];
+}
+```
+
+**AssignRoleRequest validation rules:**
+```php
+public function rules(): array
+{
+    return [
+        'user_id' => 'required|exists:users,id',
+        'company_id' => 'required|exists:companies,id',
+        'role' => 'required|in:admin,accountant,auditor,viewer',
+    ];
+}
+```
+
+### Task 2.10: Create Transformers and Routes
+
+**Files:**
+- Create: `app/Containers/Finance/Auth/UI/API/Transformers/CompanyTransformer.php`
+- Create: `app/Containers/Finance/Auth/UI/API/Transformers/UserCompanyRoleTransformer.php`
+- Create: `app/Containers/Finance/Auth/UI/API/Routes/CreateCompany.v1.private.php`
+- Create: `app/Containers/Finance/Auth/UI/API/Routes/ListCompanies.v1.private.php`
+- Create: `app/Containers/Finance/Auth/UI/API/Routes/AssignRole.v1.private.php`
+
+**CompanyTransformer:**
+```php
+public function transform(Company $company): array
+{
+    return [
+        'id' => $company->id,
+        'code' => $company->code,
+        'name' => $company->name,
+        'fiscal_year_start' => $company->fiscal_year_start,
+        'status' => $company->status,
+        'created_at' => $company->created_at?->toIso8601String(),
+    ];
+}
+```
+
+**Routes:** All under `/api/v1/auth/` prefix, NO tenant middleware (these routes don't require X-Company-Id header)
 
 ---
 
@@ -1202,25 +1282,213 @@ git commit -m "feat(foundation): add Account model with hierarchy support"
 
 ---
 
-### Task 3.3-3.7: Account CRUD Actions
+### Task 3.3: Create CreateAccountAction with Hierarchy Logic
 
-**Note:** Following TDD pattern, implement:
+**Files:**
+- Create: `app/Containers/Finance/Foundation/Actions/CreateAccountAction.php`
+- Create: `app/Containers/Finance/Foundation/Tasks/ValidateAccountCodeTask.php`
+- Create: `app/Containers/Finance/Foundation/Tasks/CalculateAccountLevelTask.php`
+- Create: `app/Containers/Finance/Foundation/Tasks/CreateAccountTask.php`
 
-- **Task 3.3**: CreateAccountAction - validates code format, calculates level from parent, inherits element_type/balance_direction
-- **Task 3.4**: ListAccountsAction - filters by parent_id, is_active, is_detail with pagination
-- **Task 3.5**: FindAccountByIdAction - retrieves single account with parent/children relationships
-- **Task 3.6**: UpdateAccountAction - allows updating name and is_active only (code/parent immutable)
-- **Task 3.7**: DeactivateAccountAction - validates no children exist before deactivation
+**Critical business rules (spec lines 232-246):**
+- Code format: 4-digit segments (1001, 100101, 10010101, 1001010101)
+- Level auto-calculated from parent (root=1, child=parent.level+1)
+- element_type/balance_direction required for level 1, inherited from parent for children
+- Maximum 4 levels deep
 
-Each task: Write test → Run (fail) → Implement Task → Implement Action → Run (pass) → Commit
+- [ ] **Step 1: Write failing test**
 
----
+```php
+public function testCreateAccountCalculatesLevelFromParent(): void
+{
+    $parent = Account::factory()->create(['code' => '1001', 'level' => 1]);
+
+    $data = [
+        'code' => '100101',
+        'name' => 'Child Account',
+        'parent_id' => $parent->id,
+    ];
+
+    $action = app(CreateAccountAction::class);
+    $account = $action->run($data);
+
+    $this->assertEquals(2, $account->level);
+    $this->assertEquals($parent->element_type, $account->element_type);
+    $this->assertEquals($parent->balance_direction, $account->balance_direction);
+}
+
+public function testCreateAccountValidatesCodeFormat(): void
+{
+    $this->expectException(ValidationException::class);
+
+    $action = app(CreateAccountAction::class);
+    $action->run(['code' => '123', 'name' => 'Invalid']); // Not 4-digit segments
+}
+```
+
+- [ ] **Step 2: Implement ValidateAccountCodeTask**
+
+```php
+public function run(string $code): void
+{
+    // Validate 4-digit segments
+    if (!preg_match('/^(\d{4})+$/', $code)) {
+        throw ValidationException::withMessages([
+            'code' => 'Account code must be 4-digit segments (e.g., 1001, 100101)'
+        ]);
+    }
+
+    // Validate max 4 levels (16 digits)
+    if (strlen($code) > 16) {
+        throw ValidationException::withMessages([
+            'code' => 'Account code cannot exceed 4 levels (16 digits)'
+        ]);
+    }
+}
+```
+
+- [ ] **Step 3: Implement CalculateAccountLevelTask**
+
+```php
+public function run(?int $parentId, string $code): array
+{
+    $level = strlen($code) / 4;
+
+    if ($parentId) {
+        $parent = Account::findOrFail($parentId);
+        return [
+            'level' => $level,
+            'element_type' => $parent->element_type,
+            'balance_direction' => $parent->balance_direction,
+        ];
+    }
+
+    return ['level' => $level];
+}
+```
+
+- [ ] **Step 4: Implement CreateAccountAction**
+
+```php
+public function run(array $data): Account
+{
+    $this->validateAccountCodeTask->run($data['code']);
+
+    $calculated = $this->calculateAccountLevelTask->run(
+        $data['parent_id'] ?? null,
+        $data['code']
+    );
+
+    return $this->createAccountTask->run(array_merge($data, $calculated));
+}
+```
+
+- [ ] **Step 5: Run tests, commit**
+
+### Task 3.4: Create UpdateAccountAction with Immutability Rules
+
+**Critical business rule (spec line 366):** Only name and is_active can be updated - code/parent/is_detail are immutable
+
+- [ ] **Step 1: Write test enforcing immutability**
+
+```php
+public function testUpdateAccountOnlyAllowsNameAndIsActive(): void
+{
+    $account = Account::factory()->create(['code' => '1001', 'name' => 'Original']);
+
+    $action = app(UpdateAccountAction::class);
+    $updated = $action->run($account->id, [
+        'name' => 'Updated Name',
+        'code' => '9999', // Should be ignored
+        'is_active' => false,
+    ]);
+
+    $this->assertEquals('Updated Name', $updated->name);
+    $this->assertEquals('1001', $updated->code); // Unchanged
+    $this->assertFalse($updated->is_active);
+}
+```
+
+- [ ] **Step 2: Implement UpdateAccountTask with field whitelist**
+
+```php
+public function run(int $id, array $data): Account
+{
+    $account = Account::findOrFail($id);
+
+    // Only allow updating name and is_active
+    $account->update(Arr::only($data, ['name', 'is_active']));
+
+    return $account->fresh();
+}
+```
+
+- [ ] **Step 3: Run test, commit**
+
+### Task 3.5: Create DeactivateAccountAction with Children Validation
+
+**Critical business rule (spec line 239-240):** Cannot delete if has children
+
+- [ ] **Step 1: Write test preventing deactivation with children**
+
+```php
+public function testDeactivateAccountFailsIfHasChildren(): void
+{
+    $parent = Account::factory()->create();
+    $child = Account::factory()->create(['parent_id' => $parent->id]);
+
+    $this->expectException(ValidationException::class);
+    $this->expectExceptionMessage('Cannot deactivate account with children');
+
+    $action = app(DeactivateAccountAction::class);
+    $action->run($parent->id);
+}
+```
+
+- [ ] **Step 2: Implement ValidateAccountHasNoChildrenTask**
+
+```php
+public function run(int $accountId): void
+{
+    $hasChildren = Account::where('parent_id', $accountId)->exists();
+
+    if ($hasChildren) {
+        throw ValidationException::withMessages([
+            'account' => 'Cannot deactivate account with children'
+        ]);
+    }
+}
+```
+
+- [ ] **Step 3: Implement DeactivateAccountAction**
+
+```php
+public function run(int $id): Account
+{
+    $this->validateAccountHasNoChildrenTask->run($id);
+
+    $account = Account::findOrFail($id);
+    $account->update(['is_active' => false]);
+
+    return $account;
+}
+```
+
+- [ ] **Step 4: Run test, commit**
+
+### Task 3.6-3.7: ListAccountsAction and FindAccountByIdAction
+
+Following established TDD pattern:
+- ListAccountsAction: filters by parent_id, is_active, is_detail with pagination
+- FindAccountByIdAction: retrieves single account with parent/children eager-loaded
 
 ### Task 3.8-3.10: Account API Layer
 
-- **Task 3.8**: AccountRepository + AccountFactory
-- **Task 3.9**: Controllers + Requests with validation (code format: 4-digit segments, max 4 levels)
-- **Task 3.10**: AccountTransformer + Routes with tenant middleware
+- AccountRepository with searchable fields
+- Controllers calling Actions
+- Requests with validation (code format, max levels)
+- AccountTransformer
+- Routes under `/api/v1/accounts` with tenant middleware
 
 ---
 
@@ -1272,10 +1540,28 @@ class AuxCategory extends Model
 
 ### Task 4.2-4.5: AuxCategory CRUD
 
+Following established TDD pattern:
 - **Task 4.2**: CreateAuxCategoryAction
-- **Task 4.3**: UpdateAuxCategoryAction - prevents editing system categories
+- **Task 4.3**: UpdateAuxCategoryAction - validates is_system=false before allowing updates
 - **Task 4.4**: ListAuxCategoriesAction
 - **Task 4.5**: API layer (Repository, Controller, Request, Transformer, Routes)
+
+**Critical validation for Task 4.3:**
+```php
+public function run(int $id, array $data): AuxCategory
+{
+    $category = AuxCategory::findOrFail($id);
+
+    if ($category->is_system) {
+        throw ValidationException::withMessages([
+            'category' => 'System categories cannot be modified'
+        ]);
+    }
+
+    $category->update($data);
+    return $category;
+}
+```
 
 ---
 
@@ -1285,14 +1571,19 @@ class AuxCategory extends Model
 - Create: `app/Containers/Finance/Foundation/Models/AuxItem.php`
 - Create migration with company_id, aux_category_id, code, name, parent_id, is_active, extra (jsonb)
 
+Migration includes:
+- Unique constraint: (company_id, aux_category_id, code)
+- Index: (company_id, aux_category_id, is_active)
+- Index: (company_id, aux_category_id, parent_id)
+- Foreign key: aux_category_id references aux_categories
+
+Model uses BelongsToCompany trait, supports hierarchy via parent_id
+
 ---
 
 ### Task 4.7-4.10: AuxItem CRUD
 
-- **Task 4.7**: CreateAuxItemAction - validates category exists, supports hierarchy
-- **Task 4.8**: UpdateAuxItemAction
-- **Task 4.9**: DeactivateAuxItemAction
-- **Task 4.10**: API layer with nested routes (/aux-categories/{id}/items)
+Following established TDD pattern with hierarchy support similar to Account model
 
 ---
 
@@ -1300,13 +1591,27 @@ class AuxCategory extends Model
 
 **Files:**
 - Create: `app/Containers/Finance/Foundation/Models/AccountAuxCategory.php`
-- Create migration with account_id, aux_category_id, is_required, sort_order
+- Create migration
+
+Migration:
+```php
+Schema::create('account_aux_categories', function (Blueprint $table) {
+    $table->id();
+    $table->foreignId('account_id')->constrained()->onDelete('restrict');
+    $table->foreignId('aux_category_id')->constrained()->onDelete('restrict');
+    $table->boolean('is_required')->default(true);
+    $table->tinyInteger('sort_order')->default(0);
+    $table->timestamps();
+
+    $table->unique(['account_id', 'aux_category_id']);
+});
+```
 
 ---
 
 ### Task 4.12-4.13: AccountAuxCategory Actions
 
-- **Task 4.12**: AttachAuxCategoryToAccountAction - validates account has_aux=true
+- **Task 4.12**: AttachAuxCategoryToAccountAction - validates account.has_aux=true
 - **Task 4.13**: DetachAuxCategoryFromAccountAction + API layer
 
 ---
@@ -1317,17 +1622,217 @@ class AuxCategory extends Model
 
 **Files:**
 - Create: `app/Containers/Finance/Foundation/Models/Period.php`
-- Create migration with company_id, fiscal_year, period_number, start_date, end_date, status, closed_at, closed_by
+- Create migration
+
+Migration:
+```php
+Schema::create('periods', function (Blueprint $table) {
+    $table->id();
+    $table->unsignedBigInteger('company_id')->index();
+    $table->smallInteger('fiscal_year');
+    $table->tinyInteger('period_number');
+    $table->date('start_date');
+    $table->date('end_date');
+    $table->enum('status', ['open', 'closed', 'locked'])->default('open');
+    $table->timestamp('closed_at')->nullable();
+    $table->foreignId('closed_by')->nullable()->constrained('users');
+    $table->timestamps();
+
+    $table->unique(['company_id', 'fiscal_year', 'period_number']);
+    $table->index(['company_id', 'status']);
+});
+```
+
+Model with BelongsToCompany trait
 
 ---
 
-### Task 5.2-5.6: Period CRUD
+### Task 5.2: Create CreatePeriodAction with Overlap Validation
 
-- **Task 5.2**: CreatePeriodAction - validates no overlap, unique (company_id, fiscal_year, period_number)
-- **Task 5.3**: InitializeFiscalYearAction - creates 12 periods respecting fiscal_year_start
-- **Task 5.4**: ClosePeriodAction - validates only one open period, transitions open→closed
-- **Task 5.5**: ListPeriodsAction - filters by fiscal_year, status
-- **Task 5.6**: API layer (Repository, Controller, Request, Transformer, Routes)
+**Critical business rules (spec lines 347-355):**
+- Periods cannot overlap for same company
+- Unique (company_id, fiscal_year, period_number)
+- Only one period can be 'open' at a time
+
+- [ ] **Step 1: Write test preventing overlapping periods**
+
+```php
+public function testCreatePeriodFailsIfOverlaps(): void
+{
+    Period::factory()->create([
+        'start_date' => '2026-01-01',
+        'end_date' => '2026-01-31',
+    ]);
+
+    $this->expectException(ValidationException::class);
+
+    $action = app(CreatePeriodAction::class);
+    $action->run([
+        'fiscal_year' => 2026,
+        'period_number' => 2,
+        'start_date' => '2026-01-15', // Overlaps with period 1
+        'end_date' => '2026-02-15',
+    ]);
+}
+```
+
+- [ ] **Step 2: Implement ValidatePeriodNoOverlapTask**
+
+```php
+public function run(string $startDate, string $endDate, int $companyId): void
+{
+    $overlaps = Period::where('company_id', $companyId)
+        ->where(function ($query) use ($startDate, $endDate) {
+            $query->whereBetween('start_date', [$startDate, $endDate])
+                ->orWhereBetween('end_date', [$startDate, $endDate])
+                ->orWhere(function ($q) use ($startDate, $endDate) {
+                    $q->where('start_date', '<=', $startDate)
+                      ->where('end_date', '>=', $endDate);
+                });
+        })
+        ->exists();
+
+    if ($overlaps) {
+        throw ValidationException::withMessages([
+            'period' => 'Period dates overlap with existing period'
+        ]);
+    }
+}
+```
+
+- [ ] **Step 3: Implement CreatePeriodAction, run test, commit**
+
+---
+
+### Task 5.3: Create InitializeFiscalYearAction
+
+**Critical business rule (spec lines 562-572):** Respect company's fiscal_year_start setting
+
+- [ ] **Step 1: Write test for fiscal year initialization**
+
+```php
+public function testInitializeFiscalYearRespectsCompanyFiscalYearStart(): void
+{
+    $company = Company::factory()->create(['fiscal_year_start' => 4]); // April
+    app()->instance('current.company_id', $company->id);
+
+    $action = app(InitializeFiscalYearAction::class);
+    $periods = $action->run(2026);
+
+    $this->assertCount(12, $periods);
+    $this->assertEquals('2026-04-01', $periods[0]->start_date->format('Y-m-d'));
+    $this->assertEquals('2027-03-31', $periods[11]->end_date->format('Y-m-d'));
+    $this->assertEquals('open', $periods[0]->status);
+    $this->assertEquals('closed', $periods[1]->status);
+}
+```
+
+- [ ] **Step 2: Implement InitializeFiscalYearAction**
+
+```php
+public function run(int $fiscalYear): Collection
+{
+    $companyId = app('current.company_id');
+    $company = Company::findOrFail($companyId);
+    $startMonth = $company->fiscal_year_start;
+
+    $periods = collect();
+
+    for ($i = 0; $i < 12; $i++) {
+        $periodNumber = $i + 1;
+        $monthOffset = $startMonth - 1 + $i;
+        $year = $fiscalYear + floor($monthOffset / 12);
+        $month = ($monthOffset % 12) + 1;
+
+        $startDate = Carbon::create($year, $month, 1);
+        $endDate = $startDate->copy()->endOfMonth();
+
+        $period = Period::create([
+            'company_id' => $companyId,
+            'fiscal_year' => $fiscalYear,
+            'period_number' => $periodNumber,
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'status' => $periodNumber === 1 ? 'open' : 'closed',
+        ]);
+
+        $periods->push($period);
+    }
+
+    return $periods;
+}
+```
+
+- [ ] **Step 3: Run test, commit**
+
+---
+
+### Task 5.4: Create ClosePeriodAction with Status Transition Validation
+
+**Critical business rules (spec lines 352, 355, 358):**
+- Status transitions: open → closed → locked (one-way only)
+- Only one period can be 'open' at a time
+- P0: closing just transitions status (no voucher validation)
+
+- [ ] **Step 1: Write test for period closing**
+
+```php
+public function testClosePeriodTransitionsOpenToClosed(): void
+{
+    $period = Period::factory()->create(['status' => 'open']);
+
+    $action = app(ClosePeriodAction::class);
+    $closed = $action->run($period->id);
+
+    $this->assertEquals('closed', $closed->status);
+    $this->assertNotNull($closed->closed_at);
+    $this->assertEquals(auth()->id(), $closed->closed_by);
+}
+
+public function testClosePeriodFailsIfNotOpen(): void
+{
+    $period = Period::factory()->create(['status' => 'closed']);
+
+    $this->expectException(ValidationException::class);
+
+    $action = app(ClosePeriodAction::class);
+    $action->run($period->id);
+}
+```
+
+- [ ] **Step 2: Implement ClosePeriodAction**
+
+```php
+public function run(int $id): Period
+{
+    $period = Period::findOrFail($id);
+
+    if ($period->status !== 'open') {
+        throw ValidationException::withMessages([
+            'period' => 'Only open periods can be closed'
+        ]);
+    }
+
+    $period->update([
+        'status' => 'closed',
+        'closed_at' => now(),
+        'closed_by' => auth()->id(),
+    ]);
+
+    return $period;
+}
+```
+
+- [ ] **Step 3: Run test, commit**
+
+---
+
+### Task 5.5-5.6: Period API Layer
+
+Following established pattern:
+- ListPeriodsAction with filters (fiscal_year, status)
+- FindPeriodByIdAction
+- API layer (Repository, Controller, Request, Transformer, Routes)
 
 ---
 
@@ -1384,29 +1889,319 @@ class CompanySeeder extends Seeder
 
 ### Task 6.2: Create AuxCategorySeeder
 
-Seeds 6 system categories (customer, supplier, dept, employee, inventory, project) for default company.
+```php
+<?php
+
+namespace App\Containers\Finance\Foundation\Data\Seeders;
+
+use App\Containers\Finance\Auth\Models\Company;
+use App\Containers\Finance\Foundation\Models\AuxCategory;
+use App\Ship\Parents\Seeders\Seeder;
+
+class AuxCategorySeeder extends Seeder
+{
+    public function run(): void
+    {
+        $company = Company::where('code', 'DEFAULT')->first();
+
+        if (!$company) {
+            return;
+        }
+
+        $categories = [
+            ['code' => 'customer', 'name' => '客户', 'is_system' => true],
+            ['code' => 'supplier', 'name' => '供应商', 'is_system' => true],
+            ['code' => 'dept', 'name' => '部门', 'is_system' => true],
+            ['code' => 'employee', 'name' => '职员', 'is_system' => true],
+            ['code' => 'inventory', 'name' => '存货', 'is_system' => true],
+            ['code' => 'project', 'name' => '项目', 'is_system' => true],
+        ];
+
+        foreach ($categories as $category) {
+            AuxCategory::firstOrCreate(
+                [
+                    'company_id' => $company->id,
+                    'code' => $category['code'],
+                ],
+                [
+                    'name' => $category['name'],
+                    'is_system' => $category['is_system'],
+                ]
+            );
+        }
+    }
+}
+```
 
 ---
 
 ### Task 6.3: Create AccountSeeder
 
-Seeds 60+ level-1 accounts from 新会计准则 for default company with proper element_type and balance_direction.
+```php
+<?php
+
+namespace App\Containers\Finance\Foundation\Data\Seeders;
+
+use App\Containers\Finance\Auth\Models\Company;
+use App\Containers\Finance\Foundation\Models\Account;
+use App\Ship\Parents\Seeders\Seeder;
+
+class AccountSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $company = Company::where('code', 'DEFAULT')->first();
+
+        if (!$company) {
+            return;
+        }
+
+        $accounts = [
+            // Assets (1xxx)
+            ['code' => '1001', 'name' => '库存现金', 'element_type' => 'asset', 'balance_direction' => 'debit'],
+            ['code' => '1002', 'name' => '银行存款', 'element_type' => 'asset', 'balance_direction' => 'debit'],
+            ['code' => '1012', 'name' => '其他货币资金', 'element_type' => 'asset', 'balance_direction' => 'debit'],
+            ['code' => '1101', 'name' => '交易性金融资产', 'element_type' => 'asset', 'balance_direction' => 'debit'],
+            ['code' => '1121', 'name' => '应收票据', 'element_type' => 'asset', 'balance_direction' => 'debit'],
+            ['code' => '1122', 'name' => '应收账款', 'element_type' => 'asset', 'balance_direction' => 'debit'],
+            ['code' => '1123', 'name' => '预付账款', 'element_type' => 'asset', 'balance_direction' => 'debit'],
+            ['code' => '1221', 'name' => '其他应收款', 'element_type' => 'asset', 'balance_direction' => 'debit'],
+            ['code' => '1231', 'name' => '坏账准备', 'element_type' => 'asset', 'balance_direction' => 'credit'],
+            ['code' => '1401', 'name' => '材料采购', 'element_type' => 'asset', 'balance_direction' => 'debit'],
+            ['code' => '1402', 'name' => '在途物资', 'element_type' => 'asset', 'balance_direction' => 'debit'],
+            ['code' => '1403', 'name' => '原材料', 'element_type' => 'asset', 'balance_direction' => 'debit'],
+            ['code' => '1404', 'name' => '材料成本差异', 'element_type' => 'asset', 'balance_direction' => 'debit'],
+            ['code' => '1405', 'name' => '库存商品', 'element_type' => 'asset', 'balance_direction' => 'debit'],
+            ['code' => '1406', 'name' => '发出商品', 'element_type' => 'asset', 'balance_direction' => 'debit'],
+            ['code' => '1407', 'name' => '商品进销差价', 'element_type' => 'asset', 'balance_direction' => 'credit'],
+            ['code' => '1408', 'name' => '委托加工物资', 'element_type' => 'asset', 'balance_direction' => 'debit'],
+            ['code' => '1411', 'name' => '周转材料', 'element_type' => 'asset', 'balance_direction' => 'debit'],
+            ['code' => '1471', 'name' => '存货跌价准备', 'element_type' => 'asset', 'balance_direction' => 'credit'],
+            ['code' => '1501', 'name' => '持有至到期投资', 'element_type' => 'asset', 'balance_direction' => 'debit'],
+            ['code' => '1502', 'name' => '持有至到期投资减值准备', 'element_type' => 'asset', 'balance_direction' => 'credit'],
+            ['code' => '1503', 'name' => '可供出售金融资产', 'element_type' => 'asset', 'balance_direction' => 'debit'],
+            ['code' => '1511', 'name' => '长期股权投资', 'element_type' => 'asset', 'balance_direction' => 'debit'],
+            ['code' => '1512', 'name' => '长期股权投资减值准备', 'element_type' => 'asset', 'balance_direction' => 'credit'],
+            ['code' => '1521', 'name' => '投资性房地产', 'element_type' => 'asset', 'balance_direction' => 'debit'],
+            ['code' => '1531', 'name' => '长期应收款', 'element_type' => 'asset', 'balance_direction' => 'debit'],
+            ['code' => '1601', 'name' => '固定资产', 'element_type' => 'asset', 'balance_direction' => 'debit'],
+            ['code' => '1602', 'name' => '累计折旧', 'element_type' => 'asset', 'balance_direction' => 'credit'],
+            ['code' => '1603', 'name' => '固定资产减值准备', 'element_type' => 'asset', 'balance_direction' => 'credit'],
+            ['code' => '1604', 'name' => '在建工程', 'element_type' => 'asset', 'balance_direction' => 'debit'],
+            ['code' => '1605', 'name' => '工程物资', 'element_type' => 'asset', 'balance_direction' => 'debit'],
+            ['code' => '1606', 'name' => '固定资产清理', 'element_type' => 'asset', 'balance_direction' => 'debit'],
+            ['code' => '1701', 'name' => '无形资产', 'element_type' => 'asset', 'balance_direction' => 'debit'],
+            ['code' => '1702', 'name' => '累计摊销', 'element_type' => 'asset', 'balance_direction' => 'credit'],
+            ['code' => '1703', 'name' => '无形资产减值准备', 'element_type' => 'asset', 'balance_direction' => 'credit'],
+            ['code' => '1711', 'name' => '商誉', 'element_type' => 'asset', 'balance_direction' => 'debit'],
+            ['code' => '1801', 'name' => '长期待摊费用', 'element_type' => 'asset', 'balance_direction' => 'debit'],
+            ['code' => '1811', 'name' => '递延所得税资产', 'element_type' => 'asset', 'balance_direction' => 'debit'],
+            ['code' => '1901', 'name' => '待处理财产损溢', 'element_type' => 'asset', 'balance_direction' => 'debit'],
+
+            // Liabilities (2xxx)
+            ['code' => '2001', 'name' => '短期借款', 'element_type' => 'liability', 'balance_direction' => 'credit'],
+            ['code' => '2201', 'name' => '应付票据', 'element_type' => 'liability', 'balance_direction' => 'credit'],
+            ['code' => '2202', 'name' => '应付账款', 'element_type' => 'liability', 'balance_direction' => 'credit'],
+            ['code' => '2203', 'name' => '预收账款', 'element_type' => 'liability', 'balance_direction' => 'credit'],
+            ['code' => '2211', 'name' => '应付职工薪酬', 'element_type' => 'liability', 'balance_direction' => 'credit'],
+            ['code' => '2221', 'name' => '应交税费', 'element_type' => 'liability', 'balance_direction' => 'credit'],
+            ['code' => '2231', 'name' => '应付利息', 'element_type' => 'liability', 'balance_direction' => 'credit'],
+            ['code' => '2232', 'name' => '应付股利', 'element_type' => 'liability', 'balance_direction' => 'credit'],
+            ['code' => '2241', 'name' => '其他应付款', 'element_type' => 'liability', 'balance_direction' => 'credit'],
+            ['code' => '2501', 'name' => '长期借款', 'element_type' => 'liability', 'balance_direction' => 'credit'],
+            ['code' => '2502', 'name' => '应付债券', 'element_type' => 'liability', 'balance_direction' => 'credit'],
+            ['code' => '2701', 'name' => '长期应付款', 'element_type' => 'liability', 'balance_direction' => 'credit'],
+            ['code' => '2702', 'name' => '未确认融资费用', 'element_type' => 'liability', 'balance_direction' => 'debit'],
+            ['code' => '2711', 'name' => '专项应付款', 'element_type' => 'liability', 'balance_direction' => 'credit'],
+            ['code' => '2801', 'name' => '预计负债', 'element_type' => 'liability', 'balance_direction' => 'credit'],
+            ['code' => '2901', 'name' => '递延所得税负债', 'element_type' => 'liability', 'balance_direction' => 'credit'],
+
+            // Equity (4xxx)
+            ['code' => '4001', 'name' => '实收资本', 'element_type' => 'equity', 'balance_direction' => 'credit'],
+            ['code' => '4002', 'name' => '资本公积', 'element_type' => 'equity', 'balance_direction' => 'credit'],
+            ['code' => '4101', 'name' => '盈余公积', 'element_type' => 'equity', 'balance_direction' => 'credit'],
+            ['code' => '4103', 'name' => '本年利润', 'element_type' => 'equity', 'balance_direction' => 'credit'],
+            ['code' => '4104', 'name' => '利润分配', 'element_type' => 'equity', 'balance_direction' => 'credit'],
+
+            // Cost (5xxx)
+            ['code' => '5001', 'name' => '生产成本', 'element_type' => 'cost', 'balance_direction' => 'debit'],
+            ['code' => '5101', 'name' => '制造费用', 'element_type' => 'cost', 'balance_direction' => 'debit'],
+            ['code' => '5201', 'name' => '劳务成本', 'element_type' => 'cost', 'balance_direction' => 'debit'],
+            ['code' => '5301', 'name' => '研发支出', 'element_type' => 'cost', 'balance_direction' => 'debit'],
+
+            // Income (6xxx - revenue)
+            ['code' => '6001', 'name' => '主营业务收入', 'element_type' => 'income', 'balance_direction' => 'credit'],
+            ['code' => '6051', 'name' => '其他业务收入', 'element_type' => 'income', 'balance_direction' => 'credit'],
+            ['code' => '6101', 'name' => '公允价值变动损益', 'element_type' => 'income', 'balance_direction' => 'credit'],
+            ['code' => '6111', 'name' => '投资收益', 'element_type' => 'income', 'balance_direction' => 'credit'],
+            ['code' => '6301', 'name' => '营业外收入', 'element_type' => 'income', 'balance_direction' => 'credit'],
+
+            // Expense (6xxx - expenses)
+            ['code' => '6401', 'name' => '主营业务成本', 'element_type' => 'expense', 'balance_direction' => 'debit'],
+            ['code' => '6402', 'name' => '其他业务成本', 'element_type' => 'expense', 'balance_direction' => 'debit'],
+            ['code' => '6403', 'name' => '税金及附加', 'element_type' => 'expense', 'balance_direction' => 'debit'],
+            ['code' => '6601', 'name' => '销售费用', 'element_type' => 'expense', 'balance_direction' => 'debit'],
+            ['code' => '6602', 'name' => '管理费用', 'element_type' => 'expense', 'balance_direction' => 'debit'],
+            ['code' => '6603', 'name' => '财务费用', 'element_type' => 'expense', 'balance_direction' => 'debit'],
+            ['code' => '6701', 'name' => '资产减值损失', 'element_type' => 'expense', 'balance_direction' => 'debit'],
+            ['code' => '6711', 'name' => '营业外支出', 'element_type' => 'expense', 'balance_direction' => 'debit'],
+            ['code' => '6801', 'name' => '所得税费用', 'element_type' => 'expense', 'balance_direction' => 'debit'],
+            ['code' => '6901', 'name' => '以前年度损益调整', 'element_type' => 'expense', 'balance_direction' => 'debit'],
+        ];
+
+        foreach ($accounts as $accountData) {
+            Account::firstOrCreate(
+                [
+                    'company_id' => $company->id,
+                    'code' => $accountData['code'],
+                ],
+                [
+                    'name' => $accountData['name'],
+                    'level' => 1,
+                    'element_type' => $accountData['element_type'],
+                    'balance_direction' => $accountData['balance_direction'],
+                    'is_detail' => true,
+                    'is_active' => true,
+                ]
+            );
+        }
+    }
+}
+```
 
 ---
 
 ### Task 6.4: Create PeriodSeeder
 
-Creates 12 periods for 2026 respecting company's fiscal_year_start, only period 1 is 'open'.
+```php
+<?php
+
+namespace App\Containers\Finance\Foundation\Data\Seeders;
+
+use App\Containers\Finance\Auth\Models\Company;
+use App\Containers\Finance\Foundation\Models\Period;
+use App\Ship\Parents\Seeders\Seeder;
+use Carbon\Carbon;
+
+class PeriodSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $company = Company::where('code', 'DEFAULT')->first();
+
+        if (!$company) {
+            return;
+        }
+
+        $fiscalYear = 2026;
+        $startMonth = $company->fiscal_year_start;
+
+        for ($i = 0; $i < 12; $i++) {
+            $periodNumber = $i + 1;
+            $monthOffset = $startMonth - 1 + $i;
+            $year = $fiscalYear + floor($monthOffset / 12);
+            $month = ($monthOffset % 12) + 1;
+
+            $startDate = Carbon::create($year, $month, 1);
+            $endDate = $startDate->copy()->endOfMonth();
+
+            Period::firstOrCreate(
+                [
+                    'company_id' => $company->id,
+                    'fiscal_year' => $fiscalYear,
+                    'period_number' => $periodNumber,
+                ],
+                [
+                    'start_date' => $startDate,
+                    'end_date' => $endDate,
+                    'status' => $periodNumber === 1 ? 'open' : 'closed',
+                ]
+            );
+        }
+    }
+}
+```
 
 ---
 
 ### Task 6.5: Integration Tests
 
-- Test multi-tenant isolation (user A cannot see user B's data)
-- Test account hierarchy (parent-child, level calculation, is_detail auto-update)
-- Test period status transitions
-- Test middleware with valid/invalid company_id
-- Test end-to-end: create company → create accounts → attach aux → create periods
+Create: `tests/Integration/Containers/Finance/MultiTenantIsolationTest.php`
+
+```php
+<?php
+
+namespace Tests\Integration\Containers\Finance;
+
+use App\Containers\AppSection\User\Models\User;
+use App\Containers\Finance\Auth\Models\Company;
+use App\Containers\Finance\Auth\Models\UserCompanyRole;
+use App\Containers\Finance\Foundation\Models\Account;
+use App\Ship\Parents\Tests\PhpUnit\TestCase;
+
+class MultiTenantIsolationTest extends TestCase
+{
+    public function testUserCannotSeeOtherCompanyData(): void
+    {
+        // Arrange
+        $company1 = Company::factory()->create();
+        $company2 = Company::factory()->create();
+        $user = User::factory()->create();
+
+        UserCompanyRole::factory()->create([
+            'user_id' => $user->id,
+            'company_id' => $company1->id,
+            'role' => 'admin',
+        ]);
+
+        app()->instance('current.company_id', $company1->id);
+        $account1 = Account::factory()->create(['company_id' => $company1->id]);
+
+        app()->instance('current.company_id', $company2->id);
+        $account2 = Account::factory()->create(['company_id' => $company2->id]);
+
+        // Act
+        app()->instance('current.company_id', $company1->id);
+        $accounts = Account::all();
+
+        // Assert
+        $this->assertCount(1, $accounts);
+        $this->assertEquals($account1->id, $accounts->first()->id);
+    }
+
+    public function testAccountHierarchyAutoUpdatesParentIsDetail(): void
+    {
+        $company = Company::factory()->create();
+        app()->instance('current.company_id', $company->id);
+
+        $parent = Account::factory()->create(['is_detail' => true]);
+        $this->assertTrue($parent->is_detail);
+
+        $child = Account::factory()->create(['parent_id' => $parent->id]);
+
+        $parent->refresh();
+        $this->assertFalse($parent->is_detail);
+    }
+
+    public function testPeriodStatusTransitionsAreOneWay(): void
+    {
+        $company = Company::factory()->create();
+        app()->instance('current.company_id', $company->id);
+
+        $period = Period::factory()->create(['status' => 'open']);
+
+        $period->update(['status' => 'closed']);
+        $this->assertEquals('closed', $period->status);
+
+        $period->update(['status' => 'locked']);
+        $this->assertEquals('locked', $period->status);
+
+        // Cannot reopen locked period
+        $this->expectException(\Exception::class);
+        $period->update(['status' => 'open']);
+    }
+}
+```
 
 ---
 
