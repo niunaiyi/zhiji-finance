@@ -10,10 +10,13 @@ class CompanyScope implements Scope
 {
     public function apply(Builder $builder, Model $model): void
     {
-        $companyId = app('current.company_id');
+        // Check if binding exists before resolving (important for seeders/console commands)
+        if (app()->bound('current.company_id')) {
+            $companyId = app('current.company_id');
 
-        if ($companyId) {
-            $builder->where('company_id', $companyId);
+            if ($companyId) {
+                $builder->where('company_id', $companyId);
+            }
         }
     }
 }
