@@ -1643,7 +1643,63 @@ Schema::create('periods', function (Blueprint $table) {
 });
 ```
 
-Model with BelongsToCompany trait
+Model with BelongsToCompany trait and status transition validation:
+
+```php
+<?php
+
+namespace App\Containers\Finance\Foundation\Models;
+
+use App\Ship\Parents\Models\Model;
+use App\Ship\Traits\BelongsToCompany;
+use Illuminate\Validation\ValidationException;
+
+class Period extends Model
+{
+    use BelongsToCompany;
+
+    protected $fillable = [
+        'fiscal_year',
+        'period_number',
+        'start_date',
+        'end_date',
+        'status',
+        'closed_at',
+        'closed_by',
+    ];
+
+    protected $casts = [
+        'fiscal_year' => 'integer',
+        'period_number' => 'integer',
+        'start_date' => 'date',
+        'end_date' => 'date',
+        'closed_at' => 'datetime',
+    ];
+
+    protected static function booted(): void
+    {
+        // Enforce one-way status transitions: open → closed → locked
+        static::updating(function (Period $period) {
+            if ($period->isDirty('status')) {
+                $oldStatus = $period->getOriginal('status');
+                $newStatus = $period->status;
+
+                $validTransitions = [
+                    'open' => ['closed'],
+                    'closed' => ['locked'],
+                    'locked' => [], // Cannot transition from locked
+                ];
+
+                if (!in_array($newStatus, $validTransitions[$oldStatus] ?? [])) {
+                    throw ValidationException::withMessages([
+                        'status' => "Invalid status transition from {$oldStatus} to {$newStatus}"
+                    ]);
+                }
+            }
+        });
+    }
+}
+```
 
 ---
 
@@ -2202,6 +2258,44 @@ class MultiTenantIsolationTest extends TestCase
     }
 }
 ```
+
+---
+
+## Pattern Reference
+
+For abbreviated CRUD tasks throughout this plan, follow these conventions:
+
+**List Actions:**
+- Support pagination (15 items per page default)
+- Accept filter parameters via Request validation
+- Return paginated collection via Transformer
+
+**Request Classes:**
+- Extend `App\Ship\Parents\Requests\Request`
+- Define `rules()` method with Laravel validation rules
+- Define `authorize()` method (return true for authenticated users, or implement role checks)
+
+**Transformers:**
+- Extend `App\Ship\Parents\Transformers\Transformer`
+- Define `transform()` method returning array
+- Use ISO8601 format for timestamps (`$model->created_at?->toIso8601String()`)
+
+**Routes:**
+- Apiato auto-discovers route files in `UI/API/Routes/` directories
+- Name format: `{ActionName}.v1.private.php` (requires auth) or `.public.php` (no auth)
+- Use `Route::get()`, `Route::post()`, `Route::put()`, `Route::delete()` with controller reference
+
+**Seeders:**
+- Register in `database/seeders/DatabaseSeeder.php`:
+  ```php
+  $this->call([
+      CompanySeeder::class,
+      AuxCategorySeeder::class,
+      AccountSeeder::class,
+      PeriodSeeder::class,
+  ]);
+  ```
+- Run with: `php artisan db:seed`
 
 ---
 
