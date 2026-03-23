@@ -26,10 +26,16 @@ export interface LoginResponse {
   companies: Company[];
 }
 
+export interface SelectCompanyResponse {
+  token: string;
+  company: Company;
+  role: 'admin' | 'accountant' | 'auditor' | 'viewer';
+}
+
 export interface AuthState {
   user: User | null;
   token: string | null;
   company: Company | null;
-  role: string | null;
+  role: 'admin' | 'accountant' | 'auditor' | 'viewer' | null;
   companies: Company[];
 }
