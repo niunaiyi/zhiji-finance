@@ -16,7 +16,7 @@ export interface AuxItem {
   name: string;
   parent_id: number | null;
   is_active: boolean;
-  extra: Record<string, any> | null;
+  extra: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
 }
@@ -31,5 +31,5 @@ export interface CreateAuxItemRequest {
   code: string;
   name: string;
   parent_id?: number;
-  extra?: Record<string, any>;
+  extra?: Record<string, unknown>;
 }
