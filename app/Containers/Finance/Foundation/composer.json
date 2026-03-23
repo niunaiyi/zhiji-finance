@@ -1,0 +1,6 @@
+{
+    "name": "finance/foundation",
+    "description": "Finance Foundation Container",
+    "type": "container",
+    "require": {}
+}
