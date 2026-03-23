@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ConfigProvider, theme } from 'antd';
 import { BookProvider } from './context/BookContext';
 import { TabProvider } from './context/TabContext';
@@ -16,9 +16,17 @@ import AuxiliaryManagement from './pages/AuxiliaryManagement';
 import InventoryManagement from './pages/InventoryManagement';
 import InventoryReport from './pages/reports/InventoryReport';
 import DictionaryManagement from './pages/DictionaryManagement';
+import Login from './pages/Login';
+import CompanySelection from './pages/CompanySelection';
 import { SettingsProvider, useSettings } from './context/SettingsContext';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import './index.css';
+
+// Protected route wrapper
+const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
+};
 
 const AppContent: React.FC = () => {
   const { tableSize } = useSettings();
@@ -53,7 +61,9 @@ const AppContent: React.FC = () => {
         <BrowserRouter>
           <TabProvider>
             <Routes>
-              <Route path="/" element={<MainLayout />}>
+              <Route path="/login" element={<Login />} />
+              <Route path="/select-company" element={<CompanySelection />} />
+              <Route path="/" element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
                 <Route index element={<Dashboard />} />
                 <Route path="vouchers" element={<Vouchers />} />
                 <Route path="subjects" element={<Subjects />} />
