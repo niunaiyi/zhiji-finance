@@ -8,46 +8,66 @@
 
 ## 项目概述
 模仿用友 U8 的企业财务管理系统。
-- 后端：Laravel 11 + PostgreSQL 15
+- 后端：Apiato v13 (基于 Laravel 11) + Porto 架构
 - 前端：React（在 frontend/ 目录）
-- 认证：JWT（tymon/jwt-auth）
-- 模块化：nwidart/laravel-modules
+- 认证：JWT（Laravel Passport）
+- 数据库：PostgreSQL 15
 - 多账套：单数据库 + company_id GlobalScope 隔离
 
 ---
 
-## Agent 文件所有权（禁止越界修改）
+## Porto 架构规范
+
+### 两层结构
+```
+app/
+├── Containers/          # 业务逻辑层
+│   └── Finance/         # Section：财务系统
+│       ├── Auth/        # Container：认证
+│       ├── Foundation/  # Container：基础设置
+│       ├── Voucher/     # Container：凭证
+│       └── ...
+└── Ship/                # 基础设施层（共享代码）
+    ├── Parents/         # 所有父类
+    ├── Middlewares/
+    ├── Traits/
+    └── ...
+```
+
+### Agent 文件所有权（禁止越界修改）
 
 | Agent | 负责目录 |
 |-------|---------|
-| Agent 1 | Modules/Foundation, Modules/Auth, database/migrations/ |
-| Agent 2 | Modules/Voucher, Modules/GeneralLedger, Modules/Report |
-| Agent 3 | Modules/Inventory, Modules/Purchase, Modules/Sales |
-| Agent 4 | Modules/AccountsReceivable, Modules/AccountsPayable, Modules/FixedAsset, Modules/Payroll |
+| Agent 1 | app/Containers/Finance/Auth, app/Containers/Finance/Foundation, database/migrations/ |
+| Agent 2 | app/Containers/Finance/Voucher, app/Containers/Finance/GeneralLedger, app/Containers/Finance/Report |
+| Agent 3 | app/Containers/Finance/Inventory, app/Containers/Finance/Purchase, app/Containers/Finance/Sales |
+| Agent 4 | app/Containers/Finance/AccountsReceivable, app/Containers/Finance/AccountsPayable, app/Containers/Finance/FixedAsset, app/Containers/Finance/Payroll |
 | Agent 5 | frontend/ |
 
-### 跨模块规则
-- 需要其他模块的 Model：直接 use，**不修改对方文件**
-- 需要其他模块的数据：查 docs/schema.md
-- 需要触发其他模块：查 docs/events.md，用已定义的 Event
-- **禁止**跨模块调用 Repository
+### 跨 Container 规则
+- 需要其他 Container 的 Model：直接 use，**不修改对方文件**
+- 需要其他 Container 的数据：查 docs/schema.md
+- 需要触发其他 Container：查 docs/events.md，用已定义的 Event
+- **禁止**跨 Container 调用 Repository
+- 同 Section 内 Container 可直接依赖其他 Container 的 Task
+- 跨 Section 只能通过 Event/Command 通信
 
 ---
 
 ## 分层规范
 
-### 目录结构
+### Container 内部结构
 ```
-Modules/{ModuleName}/
-├── Actions/         # 单一职责业务操作（每个操作一个类）
-├── DTO/             # 数据传输对象
-├── Http/
-│   ├── Controllers/
-│   ├── Requests/
-│   └── Resources/
+app/Containers/Finance/{ContainerName}/
+├── Actions/         # 业务操作（每个用例一个 Action）
+├── Tasks/           # 可复用的原子操作
 ├── Models/
-├── Repositories/
-├── Events/          # 本模块抛出的事件
+├── Data/
+│   ├── Migrations/
+│   ├── Repositories/
+│   ├── Factories/
+│   └── Seeders/
+├── Events/          # 本 Container 抛出的事件
 ├── Listeners/       # 监听其他模块的事件
 ├── Routes/
 │   └── api.php
