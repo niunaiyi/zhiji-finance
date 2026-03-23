@@ -7,6 +7,7 @@ use App\Containers\Finance\Auth\Actions\ListUserCompaniesAction;
 use App\Containers\Finance\Auth\Models\Company;
 use App\Containers\Finance\Auth\Models\UserCompanyRole;
 use App\Ship\Parents\Tests\TestCase;
+use Illuminate\Auth\AuthenticationException;
 
 class ListUserCompaniesActionTest extends TestCase
 {
@@ -72,7 +73,7 @@ class ListUserCompaniesActionTest extends TestCase
         // Arrange - No user authenticated
 
         // Act & Assert
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(AuthenticationException::class);
         $this->expectExceptionMessage('User must be authenticated');
 
         $action = app(ListUserCompaniesAction::class);
@@ -112,5 +113,44 @@ class ListUserCompaniesActionTest extends TestCase
         $this->assertCount(1, $companies);
         $this->assertTrue($companies->contains('id', $company1->id));
         $this->assertFalse($companies->contains('id', $company2->id));
+    }
+
+    public function testSuspendedCompaniesAreExcluded(): void
+    {
+        // Arrange
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $activeCompany = Company::factory()->create([
+            'name' => 'Active Company',
+            'status' => 'active',
+        ]);
+        $suspendedCompany = Company::factory()->create([
+            'name' => 'Suspended Company',
+            'status' => 'suspended',
+        ]);
+
+        // User has active roles for both companies
+        UserCompanyRole::factory()->create([
+            'user_id' => $user->id,
+            'company_id' => $activeCompany->id,
+            'role' => 'admin',
+            'is_active' => true,
+        ]);
+        UserCompanyRole::factory()->create([
+            'user_id' => $user->id,
+            'company_id' => $suspendedCompany->id,
+            'role' => 'admin',
+            'is_active' => true,
+        ]);
+
+        // Act
+        $action = app(ListUserCompaniesAction::class);
+        $companies = $action->run();
+
+        // Assert
+        $this->assertCount(1, $companies);
+        $this->assertTrue($companies->contains('id', $activeCompany->id));
+        $this->assertFalse($companies->contains('id', $suspendedCompany->id));
     }
 }

@@ -14,7 +14,8 @@ class FindUserCompaniesTask extends Task
             ->join('user_company_roles', 'companies.id', '=', 'user_company_roles.company_id')
             ->where('user_company_roles.user_id', $userId)
             ->where('user_company_roles.is_active', true)
-            ->select('companies.*', 'user_company_roles.role', 'user_company_roles.is_active')
+            ->where('companies.status', 'active')
+            ->select('companies.*', 'user_company_roles.role')
             ->get();
     }
 }
