@@ -1,8 +1,8 @@
 import apiClient from './client';
-import { Account, CreateAccountRequest, UpdateAccountRequest, ListAccountsParams } from '../types/account';
+import { Account, CreateAccountRequest, UpdateAccountRequest, ListAccountsParams, PaginationMeta } from '../types/account';
 
 export const accountsApi = {
-  list: async (params?: ListAccountsParams): Promise<{ data: Account[]; meta: any }> => {
+  list: async (params?: ListAccountsParams): Promise<{ data: Account[]; meta: PaginationMeta }> => {
     const response = await apiClient.get('/v1/accounts', { params });
     return response.data;
   },
