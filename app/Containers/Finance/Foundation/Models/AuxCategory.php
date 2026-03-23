@@ -4,6 +4,7 @@ namespace App\Containers\Finance\Foundation\Models;
 
 use App\Ship\Parents\Models\Model;
 use App\Ship\Traits\BelongsToCompany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class AuxCategory extends Model
 {
@@ -17,4 +18,11 @@ class AuxCategory extends Model
     protected $casts = [
         'is_system' => 'boolean',
     ];
+
+    public function accounts(): BelongsToMany
+    {
+        return $this->belongsToMany(Account::class, 'account_aux_categories')
+            ->withPivot(['is_required', 'sort_order'])
+            ->withTimestamps();
+    }
 }

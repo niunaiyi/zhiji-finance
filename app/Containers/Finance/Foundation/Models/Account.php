@@ -5,6 +5,7 @@ namespace App\Containers\Finance\Foundation\Models;
 use App\Ship\Parents\Models\Model;
 use App\Ship\Traits\BelongsToCompany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Account extends Model
@@ -38,6 +39,13 @@ class Account extends Model
     public function children(): HasMany
     {
         return $this->hasMany(Account::class, 'parent_id');
+    }
+
+    public function auxCategories(): BelongsToMany
+    {
+        return $this->belongsToMany(AuxCategory::class, 'account_aux_categories')
+            ->withPivot(['is_required', 'sort_order'])
+            ->withTimestamps();
     }
 
     protected static function booted(): void
