@@ -23,18 +23,31 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Load from localStorage on mount
   useEffect(() => {
-    const storedAuth = localStorage.getItem('auth');
-    if (storedAuth) {
-      setAuthState(JSON.parse(storedAuth));
+    try {
+      const storedAuth = localStorage.getItem('auth');
+      if (storedAuth) {
+        const parsed = JSON.parse(storedAuth);
+        // Add basic validation
+        if (parsed && typeof parsed === 'object') {
+          setAuthState(parsed);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load auth state:', error);
+      localStorage.removeItem('auth');
     }
   }, []);
 
   // Save to localStorage on change
   useEffect(() => {
-    if (authState.token) {
-      localStorage.setItem('auth', JSON.stringify(authState));
-    } else {
-      localStorage.removeItem('auth');
+    try {
+      if (authState.token) {
+        localStorage.setItem('auth', JSON.stringify(authState));
+      } else {
+        localStorage.removeItem('auth');
+      }
+    } catch (error) {
+      console.error('Failed to save auth state:', error);
     }
   }, [authState]);
 
@@ -48,13 +61,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const logout = () => {
     setAuthState({ user: null, token: null, company: null, role: null, companies: [] });
-    localStorage.removeItem('auth');
   };
 
   const isAuthenticated = !!authState.token && !!authState.company;
 
   return (
-    <AuthContext.Provider value={{ ...authState, companies: authState.companies, login, selectCompany, logout, isAuthenticated }}>
+    <AuthContext.Provider value={{ ...authState, login, selectCompany, logout, isAuthenticated }}>
       {children}
     </AuthContext.Provider>
   );
