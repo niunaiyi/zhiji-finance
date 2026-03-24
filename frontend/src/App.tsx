@@ -6,6 +6,7 @@ import { TabProvider } from './context/TabContext';
 import MainLayout from './layouts/MainLayout';
 import Dashboard from './pages/Dashboard';
 import Vouchers from './pages/Vouchers';
+import VoucherManagement from './pages/VoucherManagement';
 import Subjects from './pages/Subjects';
 import Reports from './pages/Reports';
 import PeriodEnd from './pages/PeriodEnd';
@@ -18,6 +19,10 @@ import InventoryReport from './pages/reports/InventoryReport';
 import DictionaryManagement from './pages/DictionaryManagement';
 import Login from './pages/Login';
 import CompanySelection from './pages/CompanySelection';
+import BalanceSheetPage from './pages/BalanceSheetPage';
+import DetailLedgerPage from './pages/DetailLedgerPage';
+import ChronologicalLedgerPage from './pages/ChronologicalLedgerPage';
+import AuxiliaryLedgerPage from './pages/AuxiliaryLedgerPage';
 import { SettingsProvider, useSettings } from './context/SettingsContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -72,11 +77,16 @@ const AppContent: React.FC = () => {
               <Route path="/" element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
                 <Route index element={<Dashboard />} />
                 <Route path="vouchers" element={<Vouchers />} />
+                <Route path="vouchers/manage" element={<VoucherManagement />} />
                 <Route path="subjects" element={<Subjects />} />
                 <Route path="reports" element={<Reports />} />
                 <Route path="reports/cash-flow" element={<CashFlowReport />} />
                 <Route path="reports/aging" element={<AgingAnalysis />} />
                 <Route path="reports/inventory" element={<InventoryReport />} />
+                <Route path="reports/balance-sheet" element={<BalanceSheetPage />} />
+                <Route path="reports/detail-ledger" element={<DetailLedgerPage />} />
+                <Route path="reports/chronological" element={<ChronologicalLedgerPage />} />
+                <Route path="reports/auxiliary-ledger" element={<AuxiliaryLedgerPage />} />
                 <Route path="entities" element={<AuxiliaryManagement />} />
                 <Route path="inventory" element={<InventoryManagement />} />
                 <Route path="period-end" element={<PeriodEnd />} />
