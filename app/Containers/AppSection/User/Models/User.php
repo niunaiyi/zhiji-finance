@@ -9,8 +9,9 @@ use App\Ship\Parents\Models\UserModel as ParentUserModel;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
-final class User extends ParentUserModel
+final class User extends ParentUserModel implements JWTSubject
 {
     protected $fillable = [
         'name',
@@ -45,6 +46,26 @@ final class User extends ParentUserModel
     public function findForPassport(string $username): self|null
     {
         return self::orWhereRaw('lower(email) = lower(?)', [$username])->first();
+    }
+
+    /**
+     * Get the identifier that will be stored in the subject claim of the JWT.
+     *
+     * @return mixed
+     */
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    /**
+     * Return a key value array, containing any custom claims to be added to the JWT.
+     *
+     * @return array
+     */
+    public function getJWTCustomClaims()
+    {
+        return [];
     }
 
     public function isSuperAdmin(): bool
