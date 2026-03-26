@@ -2,6 +2,7 @@
 
 namespace App\Containers\Finance\Foundation\UI\API\Controllers;
 
+use Apiato\Support\Facades\Response;
 use App\Containers\Finance\Foundation\Actions\CreateAuxCategoryAction;
 use App\Containers\Finance\Foundation\UI\API\Requests\CreateAuxCategoryRequest;
 use App\Containers\Finance\Foundation\UI\API\Transformers\AuxCategoryTransformer;
@@ -17,6 +18,6 @@ class CreateAuxCategoryController extends ApiController
     public function __invoke(CreateAuxCategoryRequest $request): JsonResponse
     {
         $auxCategory = $this->action->run($request->validated());
-        return $this->created($this->transform($auxCategory, AuxCategoryTransformer::class));
+        return Response::create($auxCategory, AuxCategoryTransformer::class)->created();
     }
 }

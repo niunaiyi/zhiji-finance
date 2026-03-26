@@ -9,6 +9,8 @@ class GetBalanceSheetAction extends Action
 {
     public function run(int $companyId, int $periodId, ?int $accountId = null): array
     {
+        $this->checkRole(['admin', 'accountant', 'auditor', 'viewer']);
+
         $query = Balance::with('account')
             ->where('company_id', $companyId)
             ->where('period_id', $periodId);

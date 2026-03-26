@@ -2,8 +2,10 @@
 
 namespace App\Containers\Finance\Foundation\UI\API\Controllers;
 
+use Apiato\Support\Facades\Response;
 use App\Containers\Finance\Foundation\Actions\DetachAuxCategoryFromAccountAction;
 use App\Containers\Finance\Foundation\UI\API\Requests\DetachAuxCategoryFromAccountRequest;
+use App\Containers\Finance\Foundation\UI\API\Transformers\AccountTransformer;
 use App\Ship\Parents\Controllers\ApiController;
 use Illuminate\Http\JsonResponse;
 
@@ -15,7 +17,8 @@ class DetachAuxCategoryFromAccountController extends ApiController
 
     public function __invoke(DetachAuxCategoryFromAccountRequest $request): JsonResponse
     {
-        $this->action->run($request->validated());
-        return $this->noContent();
+        $account = $this->action->run($request->validated());
+
+        return Response::create($account, AccountTransformer::class)->ok();
     }
 }

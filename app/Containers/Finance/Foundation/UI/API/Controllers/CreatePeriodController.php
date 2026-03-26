@@ -2,6 +2,7 @@
 
 namespace App\Containers\Finance\Foundation\UI\API\Controllers;
 
+use Apiato\Support\Facades\Response;
 use App\Containers\Finance\Foundation\Actions\CreatePeriodAction;
 use App\Containers\Finance\Foundation\UI\API\Requests\CreatePeriodRequest;
 use App\Containers\Finance\Foundation\UI\API\Transformers\PeriodTransformer;
@@ -17,6 +18,6 @@ class CreatePeriodController extends ApiController
     public function __invoke(CreatePeriodRequest $request): JsonResponse
     {
         $period = $this->action->run($request->validated());
-        return $this->created($this->transform($period, PeriodTransformer::class));
+        return Response::create($period, PeriodTransformer::class)->created();
     }
 }

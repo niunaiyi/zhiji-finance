@@ -1,6 +1,6 @@
 // frontend/src/api/auth.ts
 import apiClient from './client';
-import { LoginResponse, Company, SelectCompanyResponse } from '../types/auth';
+import type { LoginResponse, SelectCompanyResponse } from '../types/auth';
 
 export const authApi = {
   login: async (email: string, password: string): Promise<LoginResponse> => {
@@ -8,8 +8,9 @@ export const authApi = {
     return response.data;
   },
 
-  selectCompany: async (companyId: number): Promise<SelectCompanyResponse> => {
-    const response = await apiClient.post('/v1/auth/select-company', { company_id: companyId });
+  selectCompany: async (companyId: number, token?: string): Promise<SelectCompanyResponse> => {
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const response = await apiClient.post('/v1/auth/select-company', { company_id: companyId }, { headers });
     return response.data;
   },
 

@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Card, Table, Button, Space, Typography, Modal, Form, Input, message, Tabs, Empty, Spin } from 'antd';
+import { Card, Table, Button, Typography, Modal, Form, Input, message, Tabs, Empty, Spin } from 'antd';
 import { PlusOutlined, EditOutlined } from '@ant-design/icons';
 import { auxCategoriesApi, auxItemsApi } from '../api/auxiliary';
-import { AuxCategory, AuxItem } from '../types/auxiliary';
+import type { AuxCategory, AuxItem } from '../types/auxiliary';
 
 const { Title, Text } = Typography;
 

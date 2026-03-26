@@ -1,6 +1,6 @@
 import apiClient from './client';
-import { Period, CreatePeriodRequest, ListPeriodsParams, InitializeFiscalYearRequest } from '../types/period';
-import { PaginationMeta } from '../types/account';
+import type { Period, CreatePeriodRequest, ListPeriodsParams, InitializeFiscalYearRequest } from '../types/period';
+import type { PaginationMeta } from '../types/account';
 
 export const periodsApi = {
   list: async (params?: ListPeriodsParams): Promise<{ data: Period[]; meta: PaginationMeta }> => {

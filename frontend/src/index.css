@@ -1,0 +1,114 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #F59E0B; /* Amber 500 */
+  --color-primary-hover: #D97706; /* Amber 600 */
+  --color-surface: #1E293B; /* Slate 800 */
+  --color-background: #0F172A; /* Slate 900 */
+  --color-text: #F8FAFC; /* Slate 50 */
+  --color-text-muted: #94A3B8; /* Slate 400 */
+  
+  --font-family-sans: 'IBM Plex Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+}
+
+:root {
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  --bg-color: #0F172A;
+  --text-color: #F8FAFC;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  margin: 0;
+  padding: 0;
+  background-image: 
+    radial-gradient(circle at 50% 0%, #1E293B 0%, transparent 70%),
+    linear-gradient(rgba(245, 158, 11, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(245, 158, 11, 0.03) 1px, transparent 1px);
+  background-size: 100% 100%, 40px 40px, 40px 40px;
+}
+
+/* Glassmorphism Utilities - Corporate Dark */
+.glass-panel {
+  background: rgba(30, 41, 59, 0.7); /* Slate 800 with opacity */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.hover-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-card:hover {
+  transform: translateY(-2px);
+  background: rgba(30, 41, 59, 0.9);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+  border-color: rgba(245, 158, 11, 0.3); /* Amber accent on hover */
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0F172A;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #334155; /* Slate 700 */
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #475569; /* Slate 600 */
+}
+
+/* Ant Design Overrides for consistency */
+.ant-table-wrapper .ant-table-thead > tr > th {
+  background: rgba(30, 41, 59, 0.5) !important;
+  color: #94A3B8 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+.ant-table-wrapper .ant-table-tbody > tr > td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+.ant-table-wrapper .ant-table-tbody > tr:hover > td {
+  background: rgba(51, 65, 85, 0.5) !important; /* Slate 700 with opacity */
+}
+
+.ant-modal-content {
+  background: #1E293B !important; /* Slate 800 */
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.ant-modal-header {
+  background: transparent !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+.ant-modal-title {
+  color: #F8FAFC !important;
+}
+
+.ant-form-item-label > label {
+  color: #94A3B8 !important;
+}
+
+.ant-input, .ant-input-number, .ant-picker, .ant-select-selector {
+  background: #0F172A !important;
+  border-color: #334155 !important;
+  color: #F8FAFC !important;
+}
+
+.ant-input:focus, .ant-input-number:focus, .ant-picker:focus, .ant-select-selector:focus {
+  border-color: #F59E0B !important;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2) !important;
+}

@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Table, Card, Select, Form, Button, DatePicker, message, Tag } from 'antd';
 import { generalLedgerApi } from '../api/generalLedger';
-import dayjs from 'dayjs';
 
 const ChronologicalLedgerPage: React.FC = () => {
   const [vouchers, setVouchers] = useState<any[]>([]);
@@ -45,7 +44,7 @@ const ChronologicalLedgerPage: React.FC = () => {
       },
     ];
 
-    return <Table columns={columns} dataSource={record.lines} pagination={false} rowKey={(r, i) => `${record.voucher_no}-${i}`} />;
+    return <Table columns={columns} dataSource={record.lines} pagination={false} rowKey={(_, i) => `${record.voucher_no}-${i}`} />;
   };
 
   const columns = [

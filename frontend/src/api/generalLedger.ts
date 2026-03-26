@@ -19,7 +19,7 @@ export interface DetailLedgerEntry {
 }
 
 export const generalLedgerApi = {
-  balanceSheet: (params: { period_id: number; account_id?: number }) =>
+  trialBalanceGL: (params: { period_id: number; account_id?: number }) =>
     apiClient.get('/api/v1/general-ledger/balance-sheet', { params }),
 
   detailLedger: (params: { period_id: number; account_id: number }) =>
@@ -30,4 +30,14 @@ export const generalLedgerApi = {
 
   auxiliaryLedger: (params: { period_id: number; aux_category_id: number; aux_item_id?: number }) =>
     apiClient.get('/api/v1/general-ledger/auxiliary-ledger', { params }),
+
+  // Reports
+  trialBalance: (params: { start_date: string; end_date: string; book_code?: string }) =>
+    apiClient.get('/reports/trial-balance', { params }),
+
+  balanceSheet: (params: { date?: string; period_id?: number; book_code?: string }) =>
+    apiClient.get('/reports/balance-sheet', { params }),
+
+  incomeStatement: (params: { start_date: string; end_date: string; book_code?: string }) =>
+    apiClient.get('/reports/income-statement', { params }),
 };

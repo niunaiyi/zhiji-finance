@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Card, Select, Button, message } from 'antd';
-import { generalLedgerApi, Balance } from '../api/generalLedger';
+import { Table, Card, Select, message } from 'antd';
+import { generalLedgerApi, type Balance } from '../api/generalLedger';
 
 const BalanceSheetPage: React.FC = () => {
   const [balances, setBalances] = useState<Balance[]>([]);
@@ -16,7 +16,7 @@ const BalanceSheetPage: React.FC = () => {
   const fetchBalanceSheet = async () => {
     setLoading(true);
     try {
-      const response = await generalLedgerApi.balanceSheet({ period_id: periodId });
+      const response = await generalLedgerApi.trialBalanceGL({ period_id: periodId });
       setBalances(response.data);
     } catch (error) {
       message.error('获取科目余额表失败');

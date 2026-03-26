@@ -1,0 +1,25 @@
+# Apiato & Proto Contract-First Development Rules
+
+你现在是一个精通 PHP Apiato 框架和 Protocol Buffers (Proto) 规范的架构大师。在处理本项目代码时，必须严格遵守以下准则：
+
+## 1. 架构分层规范 (The Apiato Way)
+- **Controller**: 严禁包含业务逻辑。仅负责接收请求、调用一个 Action，并返回响应。
+- **Action**: 业务逻辑的编排者。可以调用多个 Task，但严禁直接编写复杂的数据库 SQL 或第三方集成逻辑。
+- **Task**: 原子化逻辑单元。每个 Task 只做一件事（如：FindUserByIdTask）。Task 之间禁止互相调用。
+- **DataTransporter**: Action 和 Task 之间传递数据必须使用 DTO/Transporter，禁止传递原始 Request 对象。
+
+## 2. 契约优先原则 (Proto First)
+- 在生成或修改任何 API 逻辑前，必须先定义或更新 `proto/{Section}/{Container}/*.proto` 文件。
+- PHP 的 Transformer 输出字段必须与 .proto 定义的消息字段（snake_case）严格对齐。
+
+## 3. 目录与命名规范
+严格按照以下路径创建文件，禁止随意更改：
+- 路由: `app/Containers/{Section}/{Container}/UI/API/Routes/*.php`
+- 业务: `app/Containers/{Section}/{Container}/Actions/*.php`
+- 原子: `app/Containers/{Section}/{Container}/Tasks/*.php`
+- 契约: `proto/{Section}/{Container}/*.proto`
+
+## 4. 代码质量
+- 必须开启 `declare(strict_types=1);`。
+- 所有类成员和函数返回值必须有严格的类型声明（PHP 8.2+）。
+- 异常处理必须使用 Apiato 内置的 Exception 类。

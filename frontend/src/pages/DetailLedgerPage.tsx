@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Table, Card, Select, Form, Button, message } from 'antd';
-import { generalLedgerApi, DetailLedgerEntry } from '../api/generalLedger';
+import { generalLedgerApi, type DetailLedgerEntry } from '../api/generalLedger';
 
 const DetailLedgerPage: React.FC = () => {
   const [entries, setEntries] = useState<DetailLedgerEntry[]>([]);

@@ -1,5 +1,5 @@
 import apiClient from './client';
-import { Account, CreateAccountRequest, UpdateAccountRequest, ListAccountsParams, PaginationMeta } from '../types/account';
+import type { Account, CreateAccountRequest, UpdateAccountRequest, ListAccountsParams, PaginationMeta } from '../types/account';
 
 export const accountsApi = {
   list: async (params?: ListAccountsParams): Promise<{ data: Account[]; meta: PaginationMeta }> => {

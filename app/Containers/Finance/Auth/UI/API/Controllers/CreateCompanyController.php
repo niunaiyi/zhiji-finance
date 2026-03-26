@@ -2,6 +2,7 @@
 
 namespace App\Containers\Finance\Auth\UI\API\Controllers;
 
+use Apiato\Support\Facades\Response;
 use App\Containers\Finance\Auth\Actions\CreateCompanyAction;
 use App\Containers\Finance\Auth\UI\API\Requests\CreateCompanyRequest;
 use App\Containers\Finance\Auth\UI\API\Transformers\CompanyTransformer;
@@ -18,6 +19,6 @@ class CreateCompanyController extends ApiController
     {
         $company = $this->action->run($request->validated());
 
-        return $this->created($this->transform($company, CompanyTransformer::class));
+        return Response::create($company, CompanyTransformer::class)->created();
     }
 }

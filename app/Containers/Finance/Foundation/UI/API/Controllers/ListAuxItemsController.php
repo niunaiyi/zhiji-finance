@@ -2,6 +2,7 @@
 
 namespace App\Containers\Finance\Foundation\UI\API\Controllers;
 
+use Apiato\Support\Facades\Response;
 use App\Containers\Finance\Foundation\Actions\ListAuxItemsAction;
 use App\Containers\Finance\Foundation\UI\API\Requests\ListAuxItemsRequest;
 use App\Containers\Finance\Foundation\UI\API\Transformers\AuxItemTransformer;
@@ -17,6 +18,6 @@ class ListAuxItemsController extends ApiController
     public function __invoke(ListAuxItemsRequest $request): JsonResponse
     {
         $auxItems = $this->action->run($request->validated());
-        return $this->ok($this->transform($auxItems, AuxItemTransformer::class));
+        return Response::create($auxItems, AuxItemTransformer::class)->ok();
     }
 }

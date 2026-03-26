@@ -3,6 +3,7 @@ export interface User {
   id: number;
   name: string;
   email: string;
+  is_super_admin?: boolean;
 }
 
 export interface Company {
@@ -23,6 +24,7 @@ export interface UserCompanyRole {
 
 export interface LoginResponse {
   user: User;
+  token: string;
   companies: Company[];
 }
 

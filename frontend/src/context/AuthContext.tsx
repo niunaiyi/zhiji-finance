@@ -1,10 +1,10 @@
 // frontend/src/context/AuthContext.tsx
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { AuthState, User, Company } from '../types/auth';
+import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import type { AuthState, User, Company } from '../types/auth';
 
 interface AuthContextType extends AuthState {
   companies: Company[];
-  login: (user: User, companies: Company[]) => void;
+  login: (user: User, companies: Company[], tempToken: string) => void;
   selectCompany: (token: string, company: Company, role: string) => void;
   logout: () => void;
   isAuthenticated: boolean;
@@ -55,19 +55,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, [authState]);
 
-  const login = (user: User, companies: Company[]) => {
-    setAuthState({ user, token: null, company: null, role: null, companies });
+  const login = (user: User, companies: Company[], tempToken: string) => {
+    setAuthState({ user, token: tempToken, company: null, role: null, companies });
   };
 
   const selectCompany = (token: string, company: Company, role: string) => {
-    setAuthState(prev => ({ ...prev, token, company, role }));
+    setAuthState(prev => ({ ...prev, token, company, role: role as AuthState['role'] }));
   };
 
   const logout = () => {
     setAuthState({ user: null, token: null, company: null, role: null, companies: [] });
   };
 
-  const isAuthenticated = !!authState.token && !!authState.company;
+  const isAuthenticated = !!authState.token && (!!authState.company || !!authState.user?.is_super_admin);
 
   return (
     <AuthContext.Provider value={{ ...authState, login, selectCompany, logout, isAuthenticated, isLoading }}>

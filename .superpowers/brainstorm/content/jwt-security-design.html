@@ -1,0 +1,80 @@
+<div class="section">
+  <h2>JWT 安全模式架构设计</h2>
+  <p class="subtitle">短效 Access Token + 黑名单刷新机制</p>
+</div>
+
+<div class="mockup">
+  <div class="mockup-header">认证与刷新时序图</div>
+  <div class="mockup-body">
+    <div style="display: flex; flex-direction: column; gap: 15px; font-family: monospace; font-size: 0.85em;">
+      <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #ccc; padding-bottom: 5px;">
+        <span style="width: 100px; font-weight: bold;">前端 (Client)</span>
+        <span style="flex-grow: 1; text-align: center;">--- 请求 ---</span>
+        <span style="width: 100px; font-weight: bold; text-align: right;">服务端 (API)</span>
+      </div>
+      
+      <div style="display: flex; justify-content: space-between; color: var(--primary);">
+        <span>1. POST /login</span>
+        <span>&rarr;</span>
+        <span>验证凭据</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; color: var(--primary); padding-left: 20px;">
+        <span>存储 Token (1h)</span>
+        <span>&larr;</span>
+        <span>颁发 JWT (A)</span>
+      </div>
+
+      <div style="margin: 10px 0; border-left: 2px solid #ccc; padding-left: 10px; color: var(--text-muted);">
+        ... 1小时后 Token (A) 过期 ...
+      </div>
+
+      <div style="display: flex; justify-content: space-between; color: #e74c3c;">
+        <span>2. GET /data</span>
+        <span>&rarr;</span>
+        <span>Token 过期校验</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; color: #e74c3c; padding-left: 20px;">
+        <span>捕获 401 错误</span>
+        <span>&larr;</span>
+        <span>返回 401 Unauthorized</span>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; color: #2ecc71;">
+        <span>3. POST /refresh</span>
+        <span>&rarr;</span>
+        <span>废弃 A，生成 B</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; color: #2ecc71; padding-left: 20px;">
+        <span>更新 Token (B)</span>
+        <span>&larr;</span>
+        <span>返回 JWT (B)</span>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; color: var(--primary);">
+        <span>4. 重试 GET /data</span>
+        <span>&rarr;</span>
+        <span>验证 Token (B)</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>确认设计细节</h3>
+  <div class="options" data-multiselect data-choice="details">
+    <div class="option" data-choice="blacklist" onclick="toggleSelect(this)">
+      <div class="letter">1</div>
+      <div class="content">
+        <h3>启用黑名单 (推荐)</h3>
+        <p>刷新后旧 Token 立即失效，安全性最高。</p>
+      </div>
+    </div>
+    <div class="option" data-choice="grace" onclick="toggleSelect(this)">
+      <div class="letter">2</div>
+      <div class="content">
+        <h3>设置刷新宽限期</h3>
+        <p>允许在刷新后的几十秒内旧 Token 依然有效，解决并发请求时的 401 问题。</p>
+      </div>
+    </div>
+  </div>
+</div>

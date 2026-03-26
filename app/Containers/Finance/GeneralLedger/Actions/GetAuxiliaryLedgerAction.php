@@ -9,6 +9,8 @@ class GetAuxiliaryLedgerAction extends Action
 {
     public function run(int $companyId, int $periodId, int $auxCategoryId, ?int $auxItemId = null): array
     {
+        $this->checkRole(['admin', 'accountant', 'auditor', 'viewer']);
+
         $query = BalanceAux::with(['account', 'category', 'item'])
             ->where('company_id', $companyId)
             ->where('period_id', $periodId)

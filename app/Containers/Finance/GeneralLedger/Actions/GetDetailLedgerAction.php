@@ -9,6 +9,8 @@ class GetDetailLedgerAction extends Action
 {
     public function run(int $companyId, int $periodId, int $accountId): array
     {
+        $this->checkRole(['admin', 'accountant', 'auditor', 'viewer']);
+
         $lines = VoucherLine::with(['voucher', 'account'])
             ->where('company_id', $companyId)
             ->where('account_id', $accountId)

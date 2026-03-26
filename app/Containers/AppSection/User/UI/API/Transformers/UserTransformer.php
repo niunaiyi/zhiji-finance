@@ -27,6 +27,7 @@ class UserTransformer extends ParentTransformer
             'email_verified_at' => $user->email_verified_at,
             'gender' => $user->gender,
             'birth' => $user->birth,
+            'is_super_admin' => $user->isSuperAdmin(),
         ];
     }
 

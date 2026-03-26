@@ -2,6 +2,7 @@
 
 namespace App\Containers\Finance\GeneralLedger\UI\API\Controllers;
 
+use Apiato\Support\Facades\Response;
 use App\Containers\Finance\GeneralLedger\Actions\GetAuxiliaryLedgerAction;
 use App\Containers\Finance\GeneralLedger\Actions\GetBalanceSheetAction;
 use App\Containers\Finance\GeneralLedger\Actions\GetChronologicalLedgerAction;
@@ -20,7 +21,7 @@ class GeneralLedgerController extends ApiController
 
         $data = app(GetBalanceSheetAction::class)->run($companyId, $periodId, $accountId);
 
-        return $this->json($data);
+        return Response::create($data)->ok();
     }
 
     public function detailLedger(Request $request): JsonResponse
@@ -31,7 +32,7 @@ class GeneralLedgerController extends ApiController
 
         $data = app(GetDetailLedgerAction::class)->run($companyId, $periodId, $accountId);
 
-        return $this->json($data);
+        return Response::create($data)->ok();
     }
 
     public function chronological(Request $request): JsonResponse
@@ -43,7 +44,7 @@ class GeneralLedgerController extends ApiController
 
         $data = app(GetChronologicalLedgerAction::class)->run($companyId, $periodId, $startDate, $endDate);
 
-        return $this->json($data);
+        return Response::create($data)->ok();
     }
 
     public function auxiliaryLedger(Request $request): JsonResponse
@@ -55,6 +56,6 @@ class GeneralLedgerController extends ApiController
 
         $data = app(GetAuxiliaryLedgerAction::class)->run($companyId, $periodId, $auxCategoryId, $auxItemId);
 
-        return $this->json($data);
+        return Response::create($data)->ok();
     }
 }

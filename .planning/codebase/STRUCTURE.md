@@ -1,48 +1,48 @@
-# Codebase Structure
+# 代码库结构 (Codebase Structure)
 
-This document provides a high-level map of the directory structure and the purpose of key components.
+本文档提供了目录结构和关键组件用途的高级映射。
 
-## Project Root
+## 项目根目录
 
-| Path | Purpose |
+| 路径 | 用途 |
 | :--- | :--- |
-| `app/` | Backend application logic (Laravel/Apiato). |
-| `frontend/` | React SPA source code. |
-| `config/` | Laravel configuration files. |
-| `database/` | Global migrations (OAuth/Passport) and seeders. |
-| `docs/` | Technical documentation and progress reports. |
-| `Modules/` | Architectural specifications (CLAUDE.md) for domain modules. |
-| `public/` | Web server entry point (`index.php`) and static assets. |
-| `routes/` | Global Laravel routes (rarely used in Apiato). |
-| `tests/` | Global test suite (Functional, Integration, Unit). |
+| `app/` | 后端应用逻辑 (Laravel/Apiato)。 |
+| `frontend/` | React SPA 源码。 |
+| `config/` | Laravel 配置文件。 |
+| `database/` | 全局迁移 (OAuth/Passport) 和 Seeders。 |
+| `docs/` | 技术文档和进度报告。 |
+| `Modules/` | 领域模块的架构规范 (CLAUDE.md)。 |
+| `public/` | Web 服务器入口 (`index.php`) 和静态资产。 |
+| `routes/` | 全局 Laravel 路由（在 Apiato 中很少使用）。 |
+| `tests/` | 全局测试套件（功能、集成、单元）。 |
 
-## Backend: `app/Containers/Finance`
-The core business logic resides here, organized by accounting sub-modules.
+## 后端: `app/Containers/Finance`
+核心业务逻辑位于此处，按财务子模块组织。
 
-| Sub-module | Description |
+| 子模块 | 描述 |
 | :--- | :--- |
-| `GeneralLedger` | Account management, period closing, and financial reporting. |
-| `Voucher` | Entry and management of accounting vouchers (Journal, Receipt, Payment). |
-| `AccountsPayable` | Vendor invoices and payments. |
-| `AccountsReceivable` | Customer invoices and receipts. |
-| `FixedAsset` | Asset depreciation and tracking. |
+| `GeneralLedger` | 科目管理、结账和财务报表。 |
+| `Voucher` | 凭证（凭证、收款、付款）的录入和管理。 |
+| `AccountsPayable` | 供应商发票和付款。 |
+| `AccountsReceivable` | 客户发票和收款。 |
+| `FixedAsset` | 资产折旧和跟踪。 |
 
-## Backend: `app/Ship`
-Shared application code.
+## 后端: `app/Ship`
+共享应用代码。
 
-| Directory | Purpose |
+| 目录 | 用途 |
 | :--- | :--- |
-| `Parents/` | Base classes for all Porto components (Actions, Tasks, Models, etc.). |
-| `Middleware/` | Global middleware (e.g., `SwitchTenantMiddleware.php`). |
-| `Exceptions/` | Shared error handling logic. |
+| `Parents/` | 所有 Porto 组件的基础类 (Actions, Tasks, Models 等)。 |
+| `Middleware/` | 全局中间件 (如 `SwitchTenantMiddleware.php`)。 |
+| `Exceptions/` | 共享错误处理逻辑。 |
 
-## Frontend: `frontend/src`
-Organized by standard React patterns.
+## 前端: `frontend/src`
+按标准 React 模式组织。
 
-| Directory | Purpose |
+| 目录 | 用途 |
 | :--- | :--- |
-| `api/` | API client configurations and Axios interceptors. |
-| `components/` | Reusable UI components. |
-| `context/` | React Context providers (Auth, Theme). |
-| `pages/` | Top-level view components (BalanceSheet, Ledger, etc.). |
-| `types/` | TypeScript interface and type definitions. |
+| `api/` | API 客户端配置和 Axios 拦截器。 |
+| `components/` | 可复用的 UI 组件。 |
+| `context/` | React Context 提供者 (Auth, Theme)。 |
+| `pages/` | 顶层视图组件 (资产负债表、账簿等)。 |
+| `types/` | TypeScript 接口和类型定义。 |

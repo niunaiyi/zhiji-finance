@@ -2,6 +2,7 @@
 
 namespace App\Containers\Finance\Foundation\UI\API\Controllers;
 
+use Apiato\Support\Facades\Response;
 use App\Containers\Finance\Foundation\Actions\CreateAccountAction;
 use App\Containers\Finance\Foundation\UI\API\Requests\CreateAccountRequest;
 use App\Containers\Finance\Foundation\UI\API\Transformers\AccountTransformer;
@@ -17,6 +18,6 @@ class CreateAccountController extends ApiController
     public function __invoke(CreateAccountRequest $request): JsonResponse
     {
         $account = $this->action->run($request->validated());
-        return $this->created($this->transform($account, AccountTransformer::class));
+        return Response::create($account, AccountTransformer::class)->created();
     }
 }

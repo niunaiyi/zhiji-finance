@@ -10,6 +10,8 @@ class ReverseVoucherAction extends Action
 {
     public function run(int $voucherId): Voucher
     {
+        $this->checkRole(['admin', 'auditor']);
+
         $originalVoucher = Voucher::with('lines.auxItems')->findOrFail($voucherId);
 
         if ($originalVoucher->status !== 'posted') {

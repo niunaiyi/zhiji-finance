@@ -17,6 +17,6 @@ class ListAccountsRequest extends Request
 
     public function authorize(): bool
     {
-        return $this->check(['hasAccess']);
+        return true;
     }
 }

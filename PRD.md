@@ -14,7 +14,7 @@
 | 架构模式 | Porto SAP（Sections / Containers / Actions / Tasks） |
 | 数据库 | PostgreSQL 15 |
 | 认证 | Apiato 内置 JWT（Laravel Passport） |
-| 前端 | React（已有，在 frontend/ 目录） |
+| 前端 | React|
 
 ---
 

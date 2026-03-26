@@ -3,11 +3,13 @@
 namespace App\Containers\Finance\Voucher\Models;
 
 use App\Ship\Parents\Models\Model;
+use App\Ship\Traits\BelongsToCompany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class VoucherLine extends Model
 {
+    use BelongsToCompany;
     protected $fillable = [
         'company_id',
         'voucher_id',

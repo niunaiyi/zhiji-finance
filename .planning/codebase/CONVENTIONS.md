@@ -1,120 +1,120 @@
-# Coding Conventions
+# 编码规范 (Coding Conventions)
 
-**Analysis Date:** 2025-11-20
+**分析日期:** 2025-11-20
 
-## Naming Patterns
+## 命名模式
 
-### Backend (PHP/Laravel/Apiato)
+### 后端 (PHP/Laravel/Apiato)
 
-**Files:**
-- Actions: `[ActionName]Action.php` (e.g., `CreateAccountAction.php`)
-- Tasks: `[TaskName]Task.php` (e.g., `CreateAccountTask.php`)
-- Models: `[ModelName].php` (e.g., `Account.php`)
-- Controllers: `[ControllerName]Controller.php` (e.g., `AccountController.php`)
-- Requests: `[RequestName]Request.php` (e.g., `CreateAccountRequest.php`)
+**文件:**
+- Actions: `[ActionName]Action.php` (如 `CreateAccountAction.php`)
+- Tasks: `[TaskName]Task.php` (如 `CreateAccountTask.php`)
+- Models: `[ModelName].php` (如 `Account.php`)
+- Controllers: `[ControllerName]Controller.php` (如 `AccountController.php`)
+- Requests: `[RequestName]Request.php` (如 `CreateAccountRequest.php`)
 - Migrations: `YYYY_MM_DD_HHMMSS_create_[table_name]_table.php`
 
-**Functions:**
-- Action/Task entry point: `run()`
-- Controller methods: Standard Laravel (e.g., `index`, `store`, `show`, `update`, `destroy`)
-- Helper functions: `camelCase()`
+**函数:**
+- Action/Task 入口点: `run()`
+- Controller 方法: 标准 Laravel 命名 (如 `index`, `store`, `show`, `update`, `destroy`)
+- 辅助函数: `camelCase()`
 
-**Variables:**
-- Local variables: `$camelCase`
-- Class properties: `$camelCase` (private/protected preferred with `readonly` where applicable)
+**变量:**
+- 本地变量: `$camelCase`
+- 类属性: `$camelCase`（优先使用 private/protected，适用时加 `readonly`）
 
-**Types:**
-- Use strict typing for parameters and return values in all PHP 8.2+ code.
+**类型:**
+- 在所有 PHP 8.2+ 代码中，对参数和返回值使用严格类型声明。
 
-### Frontend (TypeScript/React)
+### 前端 (TypeScript/React)
 
-**Files:**
-- Components: `PascalCase.tsx` (e.g., `AuxiliarySelector.tsx`)
-- Pages: `PascalCase.tsx` (e.g., `AccountsPayable.tsx`)
-- API Clients: `camelCase.ts` (e.g., `accounts.ts`)
-- Hooks: `useCamelCase.ts` (e.g., `useAuth.ts`)
+**文件:**
+- 组件: `PascalCase.tsx` (如 `AuxiliarySelector.tsx`)
+- 页面: `PascalCase.tsx` (如 `AccountsPayable.tsx`)
+- API 客户端: `camelCase.ts` (如 `accounts.ts`)
+- Hooks: `useCamelCase.ts` (如 `useAuth.ts`)
 
-**Functions:**
-- Component functions: `PascalCase`
-- Utility/Helper functions: `camelCase`
+**函数:**
+- 组件函数: `PascalCase`
+- 工具/辅助函数: `camelCase`
 
-**Variables:**
-- State variables: `camelCase`
-- Constants: `UPPER_SNAKE_CASE`
+**变量:**
+- 状态变量: `camelCase`
+- 常量: `UPPER_SNAKE_CASE`
 
-**Types:**
-- Interfaces: `PascalCase` (e.g., `interface AuxiliaryItem`)
+**类型:**
+- 接口 (Interfaces): `PascalCase` (如 `interface AuxiliaryItem`)
 - Props: `[ComponentName]Props`
 
-## Code Style
+## 代码风格
 
-### Backend
+### 后端
 
-**Formatting:**
-- Tool: `friendsofphp/php-cs-fixer`
-- Configuration: `.php-cs-fixer.dist.php`
-- Standard: PSR-12 (implied by PHP-CS-Fixer default)
+**格式化:**
+- 工具: `friendsofphp/php-cs-fixer`
+- 配置: `.php-cs-fixer.dist.php`
+- 标准: PSR-12（由 PHP-CS-Fixer 默认隐含）
 
-**Linting:**
-- Tool: `phpstan/phpstan` and `vimeo/psalm`
-- Rules: `.phpstan.neon.dist`, `psalm.xml`
+**代码检查 (Linting):**
+- 工具: `phpstan/phpstan` 和 `vimeo/psalm`
+- 规则: `.phpstan.neon.dist`, `psalm.xml`
 
-### Frontend
+### 前端
 
-**Formatting:**
-- Tool: `eslint` (with Prettier-like rules often integrated)
-- Configuration: `frontend/eslint.config.js`
+**格式化:**
+- 工具: `eslint`（通常集成了类似 Prettier 的规则）
+- 配置: `frontend/eslint.config.js`
 
-**Linting:**
-- Tool: `eslint` with `@typescript-eslint/parser`
+**代码检查 (Linting):**
+- 工具: `eslint` 配合 `@typescript-eslint/parser`
 
-## Import Organization
+## 导入组织 (Import Organization)
 
-### Backend
-1. PHP standard library
-2. Framework (Laravel/Apiato)
-3. Internal App namespace (`App\Containers\...`)
-4. Internal Ship namespace (`App\Ship\...`)
+### 后端
+1. PHP 标准库
+2. 框架 (Laravel/Apiato)
+3. 内部 App 命名空间 (`App\Containers\...`)
+4. 内部 Ship 命名空间 (`App\Ship\...`)
 
-### Frontend
-1. React and React-related libraries
-2. UI Libraries (e.g., `antd`)
-3. Internal components
-4. API clients
-5. Styles/Types
+### 前端
+1. React 及 React 相关库
+2. UI 库 (如 `antd`)
+3. 内部组件
+4. API 客户端
+5. 样式/类型
 
-## Error Handling
+## 错误处理
 
-### Backend
-- Use custom exceptions where appropriate.
-- Repositories wrap database constraint violations in `Apiato\Core\Repositories\Exceptions\ResourceCreationFailed`.
-- Actions should handle high-level logic and may throw/rethrow exceptions to be caught by the framework's exception handler.
+### 后端
+- 在适当的情况下使用自定义异常。
+- Repositories 将数据库约束冲突封装在 `Apiato\Core\Repositories\Exceptions\ResourceCreationFailed` 中。
+- Actions 应处理高层逻辑，并可能抛出/重新抛出异常，由框架的异常处理器捕获。
 
-### Frontend
-- Global `ErrorBoundary.tsx` at `frontend/src/components/ErrorBoundary.tsx`.
-- API response interceptors handle 401 (unauthorized) globally in `frontend/src/api/client.ts`.
+### 前端
+- 全局错误边界 `ErrorBoundary.tsx` 位于 `frontend/src/components/ErrorBoundary.tsx`。
+- API 响应拦截器在 `frontend/src/api/client.ts` 中全局处理 401（未授权）错误。
 
-## Logging
+## 日志
 
-**Framework:** `Laravel Logging` (Backend), `console` (Frontend)
+**框架:** `Laravel Logging` (后端), `console` (前端)
 
-**Patterns:**
-- Backend: Use `Log` facade for critical errors or audit logs.
-- Frontend: Use `console.error` for caught API errors in service/component layer.
+**模式:**
+- 后端: 对于关键错误或审计日志使用 `Log` facade。
+- 前端: 对于服务/组件层捕获的 API 错误使用 `console.error`。
 
-## Module Design
+## 模块设计
 
-### Backend (Porto Architecture)
-- **Actions:** Orchestrate business processes, calling multiple Tasks.
-- **Tasks:** Single-responsibility logic units.
-- **Models:** Eloquent models in `Data/Models`.
-- **Repositories:** Data access layer in `Data/Repositories`.
+### 后端 (Porto 架构)
+- **Actions:** 编排业务流程，调用多个 Tasks。
+- **Tasks:** 单一职责的逻辑单元。
+- **Models:** 位于 `Data/Models` 的 Eloquent 模型。
+- **Repositories:** 位于 `Data/Repositories` 的数据访问层。
 
-### Frontend
-- **Components:** Functional components with Hooks.
-- **Pages:** Top-level components in `src/pages`.
-- **API Services:** Organized by domain in `src/api/`.
+### 前端
+- **Components:** 配合 Hooks 的函数式组件。
+- **Pages:** 位于 `src/pages` 的顶层视图组件。
+- **API Services:** 在 `src/api/` 中按领域组织。
 
 ---
 
-*Convention analysis: 2025-11-20*
+*规范分析: 2025-11-20*

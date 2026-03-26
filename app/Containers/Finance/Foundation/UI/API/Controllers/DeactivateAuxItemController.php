@@ -2,6 +2,7 @@
 
 namespace App\Containers\Finance\Foundation\UI\API\Controllers;
 
+use Apiato\Support\Facades\Response;
 use App\Containers\Finance\Foundation\Actions\DeactivateAuxItemAction;
 use App\Containers\Finance\Foundation\UI\API\Requests\DeactivateAuxItemRequest;
 use App\Containers\Finance\Foundation\UI\API\Transformers\AuxItemTransformer;
@@ -14,9 +15,9 @@ class DeactivateAuxItemController extends ApiController
         private readonly DeactivateAuxItemAction $action
     ) {}
 
-    public function __invoke(int $id, DeactivateAuxItemRequest $request): JsonResponse
+    public function __invoke(DeactivateAuxItemRequest $request, int $id): JsonResponse
     {
         $auxItem = $this->action->run($id);
-        return $this->ok($this->transform($auxItem, AuxItemTransformer::class));
+        return Response::create($auxItem, AuxItemTransformer::class)->ok();
     }
 }

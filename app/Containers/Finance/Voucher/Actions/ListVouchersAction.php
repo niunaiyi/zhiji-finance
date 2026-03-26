@@ -10,6 +10,8 @@ class ListVouchersAction extends Action
 {
     public function run(array $filters): LengthAwarePaginator
     {
+        $this->checkRole(['admin', 'accountant', 'auditor', 'viewer']);
+
         $query = Voucher::query()->with(['period', 'creator']);
 
         if (!empty($filters['period_id'])) {

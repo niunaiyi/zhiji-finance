@@ -14,6 +14,8 @@ class PostVoucherAction extends Action
 {
     public function run(int $voucherId): Voucher
     {
+        $this->checkRole(['admin', 'auditor']);
+
         $voucher = Voucher::with('lines.auxItems')->findOrFail($voucherId);
 
         if ($voucher->status !== 'reviewed') {

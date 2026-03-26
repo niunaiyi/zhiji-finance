@@ -1,5 +1,5 @@
 import apiClient from './client';
-import { AuxCategory, AuxItem, CreateAuxCategoryRequest, CreateAuxItemRequest } from '../types/auxiliary';
+import type { AuxCategory, AuxItem, CreateAuxCategoryRequest, CreateAuxItemRequest } from '../types/auxiliary';
 
 export const auxCategoriesApi = {
   list: async (params?: { is_system?: boolean }): Promise<{ data: AuxCategory[] }> => {

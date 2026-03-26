@@ -9,6 +9,7 @@ const apiClient = axios.create({
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+        'App-Identifier': 'web',
     },
 });
 
@@ -18,7 +19,7 @@ apiClient.interceptors.request.use((config) => {
     if (authData) {
         try {
             const { token, company }: AuthState = JSON.parse(authData);
-            if (token) {
+            if (token && !config.headers.Authorization) {
                 config.headers.Authorization = `Bearer ${token}`;
             }
             if (company?.id) {

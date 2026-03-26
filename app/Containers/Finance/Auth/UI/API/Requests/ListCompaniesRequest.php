@@ -22,8 +22,6 @@ class ListCompaniesRequest extends Request
 
     public function authorize(): bool
     {
-        return $this->check([
-            'hasAccess',
-        ]);
+        return true;
     }
 }

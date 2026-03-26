@@ -16,6 +16,8 @@ class CreateVoucherAction extends Action
 {
     public function run(array $data): Voucher
     {
+        $this->checkRole(['admin', 'accountant']);
+
         // 校验期间状态
         app(CheckPeriodStatusTask::class)->run($data['period_id']);
 

@@ -1,9 +1,9 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Table, Tag, Button, Card, Tooltip, Space, Modal, Form, Input, Select, Radio, message, Popconfirm } from 'antd';
 import type { TableProps } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, VerticalAlignBottomOutlined, VerticalAlignTopOutlined } from '@ant-design/icons';
 import { accountsApi } from '../api/accounts';
-import { Account, CreateAccountRequest, UpdateAccountRequest } from '../types/account';
+import type { Account, CreateAccountRequest, UpdateAccountRequest } from '../types/account';
 import { useBook } from '../context/BookContext';
 
 interface AccountTreeNode extends Account {
@@ -28,7 +28,7 @@ const BALANCE_DIRECTION_LABELS: Record<string, string> = {
 
 // Simple debounce utility
 function debounce<T extends (...args: any[]) => void>(func: T, wait: number): (...args: Parameters<T>) => void {
-    let timeout: NodeJS.Timeout | null = null;
+    let timeout: ReturnType<typeof setTimeout> | null = null;
     return (...args: Parameters<T>) => {
         if (timeout) clearTimeout(timeout);
         timeout = setTimeout(() => func(...args), wait);
@@ -362,8 +362,8 @@ const Subjects: React.FC = () => {
                             </Form.Item>
                             <Form.Item name="balance_direction" label="余额方向" rules={[{ required: true, message: '请选择余额方向' }]}>
                                 <Radio.Group>
-                                    <Radio value="debit">借方 (Debit)</Radio>
-                                    <Radio value="credit">贷方 (Credit)</Radio>
+                                    <Radio value="debit">借方</Radio>
+                                    <Radio value="credit">贷方</Radio>
                                 </Radio.Group>
                             </Form.Item>
                             <Form.Item name="has_aux" label="启用辅助核算" valuePropName="checked">

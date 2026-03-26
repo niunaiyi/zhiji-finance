@@ -2,6 +2,7 @@
 
 namespace App\Containers\Finance\Foundation\UI\API\Controllers;
 
+use Apiato\Support\Facades\Response;
 use App\Containers\Finance\Foundation\Actions\FindAuxItemByIdAction;
 use App\Containers\Finance\Foundation\UI\API\Requests\FindAuxItemRequest;
 use App\Containers\Finance\Foundation\UI\API\Transformers\AuxItemTransformer;
@@ -14,9 +15,9 @@ class FindAuxItemController extends ApiController
         private readonly FindAuxItemByIdAction $action
     ) {}
 
-    public function __invoke(int $id, FindAuxItemRequest $request): JsonResponse
+    public function __invoke(FindAuxItemRequest $request, int $id): JsonResponse
     {
         $auxItem = $this->action->run($id);
-        return $this->ok($this->transform($auxItem, AuxItemTransformer::class));
+        return Response::create($auxItem, AuxItemTransformer::class)->ok();
     }
 }

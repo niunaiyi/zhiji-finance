@@ -1,0 +1,151 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e7]:
+        - generic [ref=e8]: F
+        - heading "智积财务" [level=1] [ref=e9]
+      - menu [ref=e10]:
+        - menuitem "dashboard 控制面板" [ref=e11] [cursor=pointer]:
+          - img "dashboard" [ref=e12]:
+            - img [ref=e13]
+          - generic [ref=e15]: 控制面板
+        - menuitem "file-text 账务中心" [ref=e16] [cursor=pointer]:
+          - img "file-text" [ref=e17]:
+            - img [ref=e18]
+          - generic [ref=e20]: 账务中心
+        - menuitem "solution 辅助核算管理" [ref=e21] [cursor=pointer]:
+          - img "solution" [ref=e22]:
+            - img [ref=e23]
+          - generic [ref=e25]: 辅助核算管理
+        - menuitem "transaction 往来管理" [ref=e26] [cursor=pointer]:
+          - img "transaction" [ref=e27]:
+            - img [ref=e28]
+          - generic [ref=e30]: 往来管理
+        - menuitem "transaction 业务管理" [ref=e31] [cursor=pointer]:
+          - img "transaction" [ref=e32]:
+            - img [ref=e33]
+          - generic [ref=e35]: 业务管理
+        - menuitem "shop 存货管理" [ref=e36] [cursor=pointer]:
+          - img "shop" [ref=e37]:
+            - img [ref=e38]
+          - generic [ref=e40]: 存货管理
+        - menuitem "appstore 固定资产" [ref=e41] [cursor=pointer]:
+          - img "appstore" [ref=e42]:
+            - img [ref=e43]
+          - generic [ref=e45]: 固定资产
+        - menuitem "solution 薪酬管理" [ref=e46] [cursor=pointer]:
+          - img "solution" [ref=e47]:
+            - img [ref=e48]
+          - generic [ref=e50]: 薪酬管理
+        - menuitem "pie-chart 报表中心" [ref=e51] [cursor=pointer]:
+          - img "pie-chart" [ref=e52]:
+            - img [ref=e53]
+          - generic [ref=e55]: 报表中心
+        - menuitem "calendar 会计期间" [ref=e56] [cursor=pointer]:
+          - img "calendar" [ref=e57]:
+            - img [ref=e58]
+          - generic [ref=e60]: 会计期间
+        - menuitem "setting 系统设置" [ref=e61] [cursor=pointer]:
+          - img "setting" [ref=e62]:
+            - img [ref=e63]
+          - generic [ref=e65]: 系统设置
+  - generic [ref=e66]:
+    - banner [ref=e67]:
+      - generic [ref=e68]:
+        - button "menu-fold" [ref=e69] [cursor=pointer]:
+          - img "menu-fold" [ref=e71]:
+            - img [ref=e72]
+        - generic [ref=e75]:
+          - generic [ref=e76]: "当前账套:"
+          - generic [ref=e77]: 账套1
+      - generic [ref=e78]:
+        - button "column-height" [ref=e80] [cursor=pointer]:
+          - img "column-height" [ref=e82]:
+            - img [ref=e83]
+        - generic [ref=e86]:
+          - button "bell" [ref=e87] [cursor=pointer]:
+            - img "bell" [ref=e89]:
+              - img [ref=e90]
+          - superscript [ref=e92]:
+            - generic [ref=e94]: "3"
+        - generic [ref=e96] [cursor=pointer]:
+          - img "user" [ref=e98]:
+            - img [ref=e99]
+          - generic [ref=e101]:
+            - generic [ref=e102]: ACC001 Admin
+            - generic [ref=e103]: 账套成员
+    - main [ref=e104]:
+      - generic [ref=e106]:
+        - tablist [ref=e107]:
+          - tab "控制面板" [selected] [ref=e111] [cursor=pointer]
+        - generic:
+          - generic:
+            - tabpanel "控制面板"
+      - generic [ref=e113]:
+        - generic [ref=e114]:
+          - generic [ref=e115]:
+            - heading "会计科目" [level=2] [ref=e116]
+            - paragraph [ref=e117]: 管理会计科目体系及属性
+          - button "plus 新增科目" [active] [ref=e118] [cursor=pointer]:
+            - img "plus" [ref=e120]:
+              - img [ref=e121]
+            - generic [ref=e124]: 新增科目
+        - generic [ref=e125]:
+          - generic [ref=e126]:
+            - img "search" [ref=e128]:
+              - img [ref=e129]
+            - textbox "搜索科目编码或名称..." [ref=e131]
+          - generic [ref=e133]:
+            - button "vertical-align-bottom 展开全部" [ref=e135] [cursor=pointer]:
+              - img "vertical-align-bottom" [ref=e137]:
+                - img [ref=e138]
+              - generic [ref=e140]: 展开全部
+            - button "vertical-align-top 折叠全部" [ref=e142] [cursor=pointer]:
+              - img "vertical-align-top" [ref=e144]:
+                - img [ref=e145]
+              - generic [ref=e147]: 折叠全部
+        - generic [ref=e154]:
+          - table [ref=e156]:
+            - rowgroup [ref=e165]:
+              - row "科目编码 科目名称 类别 余额方向 辅助核算 状态 操作" [ref=e166]:
+                - columnheader "科目编码" [ref=e167] [cursor=pointer]:
+                  - generic [ref=e168]:
+                    - generic [ref=e169]: 科目编码
+                    - generic [ref=e171]:
+                      - img [ref=e172]:
+                        - img [ref=e173]
+                      - img [ref=e175]:
+                        - img [ref=e176]
+                - columnheader "科目名称" [ref=e178]
+                - columnheader "类别" [ref=e179]
+                - columnheader "余额方向" [ref=e180]
+                - columnheader "辅助核算" [ref=e181]
+                - columnheader "状态" [ref=e182]
+                - columnheader "操作" [ref=e183]
+          - table [ref=e185]:
+            - rowgroup [ref=e194]:
+              - row [ref=e195]:
+                - cell [ref=e196]:
+                  - generic [ref=e197]:
+                    - generic [ref=e198]: 科目编码
+                    - generic [ref=e200]:
+                      - img [ref=e201]:
+                        - img [ref=e202]
+                      - img [ref=e204]:
+                        - img [ref=e205]
+                - cell [ref=e207]
+                - cell [ref=e208]
+                - cell [ref=e209]
+                - cell [ref=e210]
+                - cell [ref=e211]
+                - cell [ref=e212]
+              - row "No data No data" [ref=e213]:
+                - cell "No data No data" [ref=e214]:
+                  - generic [ref=e215]:
+                    - img "No data" [ref=e217]
+                    - generic [ref=e223]: No data
+    - contentinfo [ref=e224]: 智积财务管理系统 ©2026
+```

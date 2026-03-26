@@ -10,6 +10,8 @@ class ClosePeriodAction extends Action
 {
     public function run(int $periodId): Period
     {
+        $this->checkRole(['admin', 'accountant']);
+
         $period = Period::findOrFail($periodId);
 
         if ($period->status !== 'open') {

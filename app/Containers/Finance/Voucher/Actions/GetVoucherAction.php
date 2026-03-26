@@ -9,6 +9,8 @@ class GetVoucherAction extends Action
 {
     public function run(int $voucherId): Voucher
     {
+        $this->checkRole(['admin', 'accountant', 'auditor', 'viewer']);
+
         return Voucher::with([
             'lines.account',
             'lines.auxItems.category',

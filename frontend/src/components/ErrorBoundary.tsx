@@ -1,4 +1,4 @@
-import React, { Component, ReactNode } from 'react';
+import React, { Component, type ReactNode } from 'react';
 import { Result, Button } from 'antd';
 
 interface Props {
@@ -29,11 +29,11 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <Result
           status="error"
-          title="Something went wrong"
-          subTitle="发生了意外错误,请重试或联系技术支持。"
+          title="页面发生错误"
+          subTitle="发生了意外错误，请重试或联系技术支持。"
           extra={
             <Button type="primary" onClick={() => window.location.reload()}>
-              Reload Page
+              刷新页面
             </Button>
           }
         />

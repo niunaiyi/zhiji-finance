@@ -3,10 +3,12 @@
 namespace App\Containers\Finance\GeneralLedger\Models;
 
 use App\Ship\Parents\Models\Model;
+use App\Ship\Traits\BelongsToCompany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class BalanceAux extends Model
 {
+    use BelongsToCompany;
     protected $table = 'balance_aux';
 
     protected $fillable = [

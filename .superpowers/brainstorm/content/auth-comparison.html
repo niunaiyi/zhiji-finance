@@ -1,0 +1,81 @@
+<div class="section">
+  <h2>认证流程对比：OAuth2/Passport vs. 纯 JWT</h2>
+  <p class="subtitle">简化后将移除繁杂的客户端 ID/密钥，实现更轻量的登录。</p>
+</div>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">当前方案 (OAuth2/Passport)</div>
+    <div class="mockup-body">
+      <div class="section">
+        <div class="label">登录请求</div>
+        <p>POST /oauth/token</p>
+        <ul style="font-size: 0.9em; color: var(--text-muted);">
+          <li>grant_type: "password"</li>
+          <li>client_id: (复杂)</li>
+          <li>client_secret: (复杂)</li>
+          <li>username: "..."</li>
+          <li>password: "..."</li>
+        </ul>
+      </div>
+      <div class="section">
+        <div class="label">服务端开销</div>
+        <ul style="font-size: 0.9em; color: var(--text-muted);">
+          <li>查验客户端 ID 是否合法</li>
+          <li>写入数据库 (oauth_access_tokens)</li>
+          <li>写入数据库 (oauth_refresh_tokens)</li>
+        </ul>
+      </div>
+      <div class="section">
+        <div class="label">结果</div>
+        <p>需要管理多个数据表，请求较重。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">简化方案 (JWT)</div>
+    <div class="mockup-body">
+      <div class="section">
+        <div class="label">登录请求</div>
+        <p>POST /v1/login</p>
+        <ul style="font-size: 0.9em; color: var(--text-muted);">
+          <li>email: "..."</li>
+          <li>password: "..."</li>
+        </ul>
+      </div>
+      <div class="section">
+        <div class="label">服务端开销</div>
+        <ul style="font-size: 0.9em; color: var(--text-muted);">
+          <li>仅验证用户信息</li>
+          <li>内存中生成并签名 Token</li>
+          <li style="color: var(--primary);">无数据库写入开销</li>
+        </ul>
+      </div>
+      <div class="section">
+        <div class="label">结果</div>
+        <p>无状态验证，响应极快，管理简单。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>后续决定</h3>
+  <div class="options" data-choice="approach">
+    <div class="option" data-choice="lib" onclick="toggleSelect(this)">
+      <div class="letter">A</div>
+      <div class="content">
+        <h3>使用 tymon/jwt-auth</h3>
+        <p>Laravel 社区最成熟的插件，功能全（支持黑名单/刷新），但稍重。</p>
+      </div>
+    </div>
+    <div class="option" data-choice="minimal" onclick="toggleSelect(this)">
+      <div class="letter">B</div>
+      <div class="content">
+        <h3>极简自定义 JWT (lcobucci/jwt)</h3>
+        <p>仅实现登录和简单的 Guard 验证，将代码完全控制在 AppSection/Authentication 下。</p>
+      </div>
+    </div>
+  </div>
+</div>

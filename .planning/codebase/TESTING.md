@@ -1,144 +1,144 @@
-# Testing Patterns
+# 测试模式 (Testing Patterns)
 
-**Analysis Date:** 2025-11-20
+**分析日期:** 2025-11-20
 
-## Test Framework
+## 测试框架
 
-### Backend (PHP)
+### 后端 (PHP)
 
-**Runner:**
+**执行器:**
 - PHPUnit 11.0.1
-- Config: `phpunit.xml`
+- 配置文件: `phpunit.xml`
 
-**Assertion Library:**
-- PHPUnit built-in assertions
-- Mockery for object mocking
+**断言库:**
+- PHPUnit 内置断言
+- 使用 Mockery 进行对象模拟
 
-**Run Commands:**
+**执行命令:**
 ```bash
-./vendor/bin/phpunit         # Run all tests
-./vendor/bin/paratest       # Run tests in parallel
+./vendor/bin/phpunit         # 运行所有测试
+./vendor/bin/paratest       # 并行运行测试
 ```
 
-### Frontend (TypeScript)
+### 前端 (TypeScript)
 
-**Runner:**
-- Custom integration tests (likely using a runner compatible with `describe`/`it`, like Vitest or Jest, though not explicitly in package.json, Vitest is common with Vite).
-- Playwright is also present for E2E/Integration.
+**执行器:**
+- 自定义集成测试（可能使用 Vitest 或 Jest）。
+- Playwright 用于 E2E/集成测试。
 
-**Run Commands:**
+**执行命令:**
 ```bash
-# Frontend test script not explicitly defined in package.json but integration tests exist
+# 前端测试脚本未显式定义在 package.json 中，但存在集成测试
 ```
 
-## Test File Organization
+## 测试文件组织
 
-### Backend
+### 后端
 
-**Location:**
-- `tests/Functional/`: Feature/Integration tests for Action/Controller layers.
-- `tests/Integration/`: Integration tests for lower level components.
-- `tests/Unit/`: Isolated unit tests.
+**位置:**
+- `tests/Functional/`: Action/Controller 层的特性/集成测试。
+- `tests/Integration/`: 低级别组件的集成测试。
+- `tests/Unit/`: 隔离的单元测试。
 
-**Naming:**
-- `[Action/TaskName]Test.php` (e.g., `CreateCompanyActionTest.php`)
+**命名:**
+- `[Action/TaskName]Test.php` (如 `CreateCompanyActionTest.php`)
 
-### Frontend
+### 前端
 
-**Location:**
-- `frontend/src/__tests__/`: Integration and unit tests for the frontend.
+**位置:**
+- `frontend/src/__tests__/`: 前端集成和单元测试。
 
-**Naming:**
-- `[filename].test.ts` (e.g., `api.test.ts`)
+**命名:**
+- `[filename].test.ts` (如 `api.test.ts`)
 
-## Test Structure
+## 测试结构
 
-### Backend (Functional Test)
+### 后端 (功能测试)
 ```php
 public function test_something(): void
 {
-    // Arrange: Set up initial state, create models, act as user
+    // Arrange: 设置初始状态，创建模型，以用户身份操作
     $user = User::factory()->create();
     $this->actingAs($user);
     $data = [...];
 
-    // Act: Execute the action or task being tested
+    // Act: 执行被测试的 Action 或 Task
     $action = app(CreateCompanyAction::class);
     $company = $action->run($data);
 
-    // Assert: Verify database state or return value
+    // Assert: 验证数据库状态或返回值
     $this->assertDatabaseHas('companies', ['code' => 'TEST01']);
 }
 ```
 
-### Frontend (Integration Test)
+### 前端 (集成测试)
 ```typescript
 describe('API Integration Tests', () => {
   beforeAll(async () => {
-    // Setup login/auth
+    // 设置登录/认证
   });
 
   afterAll(async () => {
-    // Cleanup created resources
+    // 清理创建的资源
   });
 
-  it('should create and retrieve account', async () => {
+  it('应该创建并获取账户', async () => {
     const response = await accountsApi.create({ ... });
     expect(response.code).toBe(uniqueCode);
   });
 });
 ```
 
-## Mocking
+## Mocking (模拟)
 
-### Backend
+### 后端
 
-**Framework:** Mockery
+**框架:** Mockery
 
-**Patterns:**
+**模式:**
 ```php
-// Mocking a task in an Action test
+// 在 Action 测试中模拟一个 Task
 $mockTask = $this->mock(\App\Containers\Finance\Auth\Tasks\AssignUserRoleTask::class);
 $mockTask->shouldReceive('run')
     ->once()
-    ->andThrow(new \RuntimeException('Simulated failure'));
+    ->andThrow(new \RuntimeException('模拟失败'));
 ```
 
-**What to Mock:**
-- Side effects (e.g., external API calls, mailers).
-- Tasks within Action tests to isolate failure scenarios (e.g., transaction rollback tests).
+**模拟对象:**
+- 副作用（如外部 API 调用、邮件发送）。
+- Action 测试中的 Tasks，用于隔离失败场景（如事务回滚测试）。
 
-### Frontend
+### 前端
 
-**Patterns:**
-- Integration tests currently use real API calls with setup/cleanup (based on `api.test.ts`).
+**模式:**
+- 目前集成测试使用真实的 API 调用并配合设置/清理工作（参考 `api.test.ts`）。
 
-## Fixtures and Factories
+## Fixtures 与 Factories
 
-### Backend
+### 后端
 
-**Test Data:**
-- Use Laravel/Apiato Factories in `Data/Factories` of each container.
-- `User::factory()->create()` is common.
+**测试数据:**
+- 使用每个容器 `Data/Factories` 中的 Laravel/Apiato Factories。
+- `User::factory()->create()` 是常见用法。
 
-**Location:**
-- Container Factories: `app/Containers/{Section}/{Container}/Data/Factories/`
+**位置:**
+- 容器 Factories: `app/Containers/{Section}/{Container}/Data/Factories/`
 - Seeders: `app/Containers/{Section}/{Container}/Data/Seeders/`
 
-## Coverage
+## 覆盖率
 
-**Requirements:**
-- No strict coverage threshold found in configurations.
+**要求:**
+- 配置中未发现严格的覆盖率阈值要求。
 
-## Test Types
+## 测试类型
 
-**Unit Tests:**
-- Focus on isolated Tasks or utility classes.
+**单元测试:**
+- 专注于隔离的 Tasks 或工具类。
 
-**Functional/Integration Tests:**
-- Backend: Tests Actions with database interaction (refreshing database).
-- Frontend: `api.test.ts` tests interaction with the backend API.
+**功能/集成测试:**
+- 后端: 测试带有数据库交互的 Actions（刷新数据库）。
+- 前端: `api.test.ts` 测试与后端 API 的交互。
 
 ---
 
-*Testing analysis: 2025-11-20*
+*测试分析: 2025-11-20*

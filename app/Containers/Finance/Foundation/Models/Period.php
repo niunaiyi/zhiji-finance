@@ -19,6 +19,8 @@ class Period extends Model
         'start_date',
         'end_date',
         'status',
+        'closed_at',
+        'closed_by',
     ];
 
     protected $casts = [
@@ -27,6 +29,7 @@ class Period extends Model
         'start_date' => 'date',
         'end_date' => 'date',
         'closed_at' => 'datetime',
+        'closed_by' => 'integer',
     ];
 
     public function company(): BelongsTo

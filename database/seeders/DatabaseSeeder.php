@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             \App\Containers\Finance\Foundation\Data\Seeders\AuxCategorySeeder::class,
             \App\Containers\Finance\Foundation\Data\Seeders\AccountSeeder::class,
             \App\Containers\Finance\Foundation\Data\Seeders\PeriodSeeder::class,
+            \App\Containers\Finance\Voucher\Data\Seeders\VoucherSeeder::class,
         ]);
     }
 }

@@ -36,23 +36,23 @@ export interface Voucher {
 
 export const vouchersApi = {
   list: (params?: any) =>
-    apiClient.get('/api/v1/vouchers', { params }),
+    apiClient.get('/v1/vouchers', { params }),
 
   get: (id: number) =>
-    apiClient.get(`/api/v1/vouchers/${id}`),
+    apiClient.get(`/v1/vouchers/${id}`),
 
   create: (data: CreateVoucherRequest) =>
-    apiClient.post('/api/v1/vouchers', data),
+    apiClient.post('/v1/vouchers', data),
 
   review: (id: number) =>
-    apiClient.post(`/api/v1/vouchers/${id}/review`),
+    apiClient.post(`/v1/vouchers/${id}/review`),
 
   post: (id: number) =>
-    apiClient.post(`/api/v1/vouchers/${id}/post`),
+    apiClient.post(`/v1/vouchers/${id}/post`),
 
   reverse: (id: number) =>
-    apiClient.post(`/api/v1/vouchers/${id}/reverse`),
+    apiClient.post(`/v1/vouchers/${id}/reverse`),
 
   void: (id: number) =>
-    apiClient.post(`/api/v1/vouchers/${id}/void`),
+    apiClient.post(`/v1/vouchers/${id}/void`),
 };

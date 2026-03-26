@@ -11,6 +11,8 @@ class YearEndRolloverAction extends Action
 {
     public function run(int $companyId, int $fiscalYear): void
     {
+        $this->checkRole(['admin', 'accountant']);
+
         // 获取本年最后一个期间
         $lastPeriod = Period::where('company_id', $companyId)
             ->where('fiscal_year', $fiscalYear)

@@ -7,6 +7,8 @@ use App\Containers\AppSection\User\Data\Collections\UserCollection;
 use App\Containers\AppSection\User\Enums\Gender;
 use App\Ship\Parents\Models\UserModel as ParentUserModel;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 final class User extends ParentUserModel
 {
@@ -16,6 +18,7 @@ final class User extends ParentUserModel
         'password',
         'gender',
         'birth',
+        'is_super_admin',
     ];
 
     protected $hidden = [
@@ -28,6 +31,7 @@ final class User extends ParentUserModel
         'password' => 'hashed',
         'gender' => Gender::class,
         'birth' => 'immutable_date',
+        'is_super_admin' => 'boolean',
     ];
 
     public function newCollection(array $models = []): UserCollection
@@ -45,13 +49,17 @@ final class User extends ParentUserModel
 
     public function isSuperAdmin(): bool
     {
+        if ($this->is_super_admin) {
+            return true;
+        }
+
         foreach (array_keys(config('auth.guards')) as $guard) {
-            if (!$this->hasRole(RoleEnum::SUPER_ADMIN, $guard)) {
-                return false;
+            if ($this->hasRole(RoleEnum::SUPER_ADMIN, $guard)) {
+                return true;
             }
         }
 
-        return true;
+        return false;
     }
 
     protected function email(): Attribute
@@ -59,5 +67,17 @@ final class User extends ParentUserModel
         return new Attribute(
             get: static fn (string|null $value): string|null => is_null($value) ? null : strtolower($value),
         );
+    }
+
+    public function companyRoles(): HasMany
+    {
+        return $this->hasMany(\App\Containers\Finance\Auth\Models\UserCompanyRole::class);
+    }
+
+    public function companies(): BelongsToMany
+    {
+        return $this->belongsToMany(\App\Containers\Finance\Auth\Models\Company::class, 'user_company_roles')
+            ->withPivot(['role', 'is_active'])
+            ->withTimestamps();
     }
 }

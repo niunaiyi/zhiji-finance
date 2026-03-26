@@ -3,11 +3,14 @@
 namespace App\Containers\Finance\Voucher\Models;
 
 use App\Ship\Parents\Models\Model;
+use App\Ship\Traits\BelongsToCompany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Voucher extends Model
 {
+    use BelongsToCompany;
+
     protected $fillable = [
         'company_id',
         'period_id',
@@ -45,17 +48,17 @@ class Voucher extends Model
 
     public function creator(): BelongsTo
     {
-        return $this->belongsTo(\App\Containers\Finance\Auth\Models\User::class, 'created_by');
+        return $this->belongsTo(\App\Containers\AppSection\User\Models\User::class, 'created_by');
     }
 
     public function reviewer(): BelongsTo
     {
-        return $this->belongsTo(\App\Containers\Finance\Auth\Models\User::class, 'reviewed_by');
+        return $this->belongsTo(\App\Containers\AppSection\User\Models\User::class, 'reviewed_by');
     }
 
     public function poster(): BelongsTo
     {
-        return $this->belongsTo(\App\Containers\Finance\Auth\Models\User::class, 'posted_by');
+        return $this->belongsTo(\App\Containers\AppSection\User\Models\User::class, 'posted_by');
     }
 
     public function scopeByPeriod($query, int $periodId)

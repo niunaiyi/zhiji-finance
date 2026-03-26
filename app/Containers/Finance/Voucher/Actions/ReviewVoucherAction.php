@@ -9,6 +9,8 @@ class ReviewVoucherAction extends Action
 {
     public function run(int $voucherId): Voucher
     {
+        $this->checkRole(['admin', 'auditor']);
+
         $voucher = Voucher::findOrFail($voucherId);
 
         if ($voucher->status !== 'draft') {

@@ -9,6 +9,8 @@ class GetChronologicalLedgerAction extends Action
 {
     public function run(int $companyId, int $periodId, ?string $startDate = null, ?string $endDate = null): array
     {
+        $this->checkRole(['admin', 'accountant', 'auditor', 'viewer']);
+
         $query = Voucher::with(['lines.account'])
             ->where('company_id', $companyId)
             ->where('period_id', $periodId)

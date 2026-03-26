@@ -28,4 +28,5 @@ export interface ListPeriodsParams {
 
 export interface InitializeFiscalYearRequest {
   fiscal_year: number;
+  start_month?: number;
 }

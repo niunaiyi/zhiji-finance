@@ -9,6 +9,8 @@ class VoidVoucherAction extends Action
 {
     public function run(int $voucherId): Voucher
     {
+        $this->checkRole(['admin', 'accountant']);
+
         $voucher = Voucher::findOrFail($voucherId);
 
         if (!in_array($voucher->status, ['draft', 'reviewed'])) {

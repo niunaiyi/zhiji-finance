@@ -2,6 +2,7 @@
 
 namespace App\Containers\Finance\Auth\UI\API\Controllers;
 
+use Apiato\Support\Facades\Response;
 use App\Containers\Finance\Auth\Actions\AssignUserRoleAction;
 use App\Containers\Finance\Auth\UI\API\Requests\AssignRoleRequest;
 use App\Containers\Finance\Auth\UI\API\Transformers\UserCompanyRoleTransformer;
@@ -24,6 +25,6 @@ class AssignRoleController extends ApiController
             $validated['role']
         );
 
-        return $this->json($this->transform($userCompanyRole, UserCompanyRoleTransformer::class));
+        return Response::create($userCompanyRole, UserCompanyRoleTransformer::class)->ok();
     }
 }
