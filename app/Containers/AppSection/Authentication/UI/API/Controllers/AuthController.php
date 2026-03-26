@@ -6,7 +6,7 @@ use App\Containers\AppSection\Authentication\Actions\Api\ProxyApiLoginAction;
 use App\Ship\Parents\Controllers\ApiController;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
-use App\Ship\Parents\Requests\Request;
+use Illuminate\Http\Request;
 
 final class AuthController extends ApiController
 {

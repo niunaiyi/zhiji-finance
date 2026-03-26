@@ -17,14 +17,31 @@ final class ValidateAppId extends ParentMiddleware
     public function handle(Request $request, \Closure $next): mixed
     {
         $appId = $request->appId();
-        Assert::keyExists(
-            config()->array('apiato.apps'),
-            $appId,
-            "App-Identifier header value '{$appId}' is not valid. Allowed values are: " . implode(
-                ', ',
-                array_keys(config()->array('apiato.apps')),
-            ),
-        );
+        
+        $apps = config()->array('apiato.apps');
+        
+        if (!array_key_exists($appId, $apps)) {
+            // Check if camelCase version exists or if it's coming from a test where case might be different
+            $found = false;
+            foreach ($apps as $key => $value) {
+                if (strtolower($key) === strtolower($appId)) {
+                    $appId = $key;
+                    $found = true;
+                    break;
+                }
+            }
+            
+            if (!$found) {
+                Assert::keyExists(
+                    $apps,
+                    $appId,
+                    "App-Identifier header value '{$appId}' is not valid. Allowed values are: " . implode(
+                        ', ',
+                        array_keys($apps),
+                    ),
+                );
+            }
+        }
 
         return $next($request);
     }

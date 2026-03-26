@@ -40,6 +40,7 @@
         <env name="APP_KEY" value="base64:/P8qAVnj5ASF8iAC9xDdCJK8GM/feE+r2Nsr5s3CqDw="/>
         <env name="APP_ENV" value="testing"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <env name="LOG_CHANNEL" value="single"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="CACHE_STORE" value="array"/>
         <!-- <env name="DB_CONNECTION" value="sqlite"/> -->
