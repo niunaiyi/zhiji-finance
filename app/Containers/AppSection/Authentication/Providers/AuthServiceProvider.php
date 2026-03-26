@@ -5,6 +5,7 @@ namespace App\Containers\AppSection\Authentication\Providers;
 use App\Ship\Parents\Providers\ServiceProvider as ParentServiceProvider;
 use Illuminate\Auth\SessionGuard;
 use Illuminate\Support\Facades\Auth;
+use Tymon\JWTAuth\JWTGuard;
 
 final class AuthServiceProvider extends ParentServiceProvider
 {
@@ -25,5 +26,6 @@ final class AuthServiceProvider extends ParentServiceProvider
          * @return string|null
          */
         SessionGuard::macro('activeGuard', $method);
+        JWTGuard::macro('activeGuard', $method);
     }
 }
