@@ -13,6 +13,10 @@ final class MailTest extends ShipTestCase
         $config = config('mail');
         $expected = [
             'default' => env('MAIL_MAILER', 'log'),
+            'from' => [
+                'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
+                'name' => env('MAIL_FROM_NAME', '${APP_NAME}'),
+            ],
             'mailers' => [
                 'smtp' => [
                     'transport' => 'smtp',
@@ -59,10 +63,6 @@ final class MailTest extends ShipTestCase
                         'postmark',
                     ],
                 ],
-            ],
-            'from' => [
-                'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
-                'name' => env('MAIL_FROM_NAME', 'Example'),
             ],
             'markdown' => [
                 'theme' => 'default',

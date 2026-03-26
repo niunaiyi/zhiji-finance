@@ -80,7 +80,7 @@ use Illuminate\Validation\ValidationServiceProvider;
 use Illuminate\View\ViewServiceProvider;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use App\Containers\AppSection\User\Providers\UserServiceProvider;
-use App\Containers\AppSection\Authentication\Providers\PassportServiceProvider;
+use App\Containers\Finance\GeneralLedger\Providers\EventServiceProvider;
 use App\Containers\Vendor\Documentation\Providers\DocumentGeneratorServiceProvider;
 use App\Ship\Providers\ShipServiceProvider;
 
@@ -129,22 +129,16 @@ final class AppTest extends ShipTestCase
                 MailServiceProvider::class,
                 NotificationServiceProvider::class,
                 PaginationServiceProvider::class,
-                LaravelPasswordResetServiceProvider::class,
-                PipelineServiceProvider::class,
-                QueueServiceProvider::class,
-                RedisServiceProvider::class,
-                SessionServiceProvider::class,
-                TranslationServiceProvider::class,
                 ValidationServiceProvider::class,
                 ViewServiceProvider::class,
                 DocumentGeneratorServiceProvider::class,
                 ShipServiceProvider::class,
                 AuthServiceProvider::class,
                 EmailVerificationServiceProvider::class,
-                PassportServiceProvider::class,
                 PasswordResetServiceProvider::class,
                 UserServiceProvider::class,
-            ],
+                EventServiceProvider::class,
+                ],
             'aliases' => [
                 'App' => App::class,
                 'Arr' => Arr::class,

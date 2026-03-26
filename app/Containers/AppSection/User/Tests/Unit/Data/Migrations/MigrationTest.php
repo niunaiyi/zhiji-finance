@@ -16,6 +16,7 @@ final class MigrationTest extends UnitTestCase
             'email' => 'varchar',
             'email_verified_at' => 'timestamp',
             'password' => 'varchar',
+            'is_super_admin' => 'bool',
             'gender' => 'varchar',
             'birth' => 'date',
             'remember_token' => 'varchar',

@@ -26,6 +26,7 @@ final class UserAdminTransformerTest extends UnitTestCase
             'email_verified_at' => $user->email_verified_at,
             'gender' => $user->gender,
             'birth' => $user->birth,
+            'is_super_admin' => $user->isSuperAdmin(),
             'real_id' => $user->id,
             'created_at' => $user->created_at,
             'updated_at' => $user->updated_at,
